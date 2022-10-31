@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from from_root import from_root
+from torch.types import Device
 from xray.constants import *
 from xray.configuration.s3_operations import S3Operation
 import os
@@ -36,3 +37,16 @@ class DataTransformationConfig:
         self.BATCH_SIZE: int = BATCH_SIZE
         self.SHUFFLE: bool = SHUFFLE
         self.PIN_MEMORY: bool = PIN_MEMORY
+
+@dataclass
+class ModelTrainerConfig:
+     def __init__(self):
+        self.TRAINED_MODEL_DIR: str = os.path.join(from_root(),ARTIFACTS_DIR,TRAINED_MODEL_DIR)
+        self.TRAINED_MODEL_PATH = os.path.join(self.TRAINED_MODEL_DIR,TRAINED_MODEL_NAME)
+        self.PARAMS_EPOCHS: int = PARAMS_EPOCHS
+        self.STEP_SIZE: int = STEP_SIZE
+        self.GAMMA: int = GAMMA
+        self.EPOCH: int = EPOCH
+        self.MODEL: str = MODEL 
+        self.OPTIMIZER = OPTIMIZER
+        self.DEVICE = DEVICE 

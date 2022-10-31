@@ -10,3 +10,7 @@ class DataIngestionArtifacts:
 class DataTransformationArtifacts:
     transformed_train_object: str 
     transformed_test_object: str
+
+@dataclass
+class ModelTrainerArtifacts:
+    trained_model_path: str

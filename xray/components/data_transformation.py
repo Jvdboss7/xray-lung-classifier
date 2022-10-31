@@ -2,16 +2,16 @@ import os
 import sys 
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-from xray.entity.config_entity import DataIngestionConfig,DataTransformationConfig
-from xray.entity.artifacts_entity import DataTransformationArtifacts
+from xray.entity.config_entity import DataTransformationConfig
+from xray.entity.artifacts_entity import DataTransformationArtifacts, DataIngestionArtifacts
 from xray.exception import XrayException
 
 
 
 class DataTransformation:
-    def __init__(self,data_transformation_config: DataTransformationConfig,data_ingestion_config:DataIngestionConfig):
+    def __init__(self,data_transformation_config: DataTransformationConfig,data_ingestion_artifact: DataIngestionArtifacts):
         self.data_transformation_config = data_transformation_config
-        self.data_ingestion_config = data_ingestion_config
+        self.data_ingestion_artifact = data_ingestion_artifact
 
     def transforming_training_data(self):
         train_transform = transforms.Compose([
@@ -45,9 +45,9 @@ class DataTransformation:
         # os.makedirs(os.path.join(data_transform_dir_path,self.data_transformation_config.TRAIN_TRANSFORM_DATA_ARTIFACT_DIR),exist_ok=True)
         # os.makedirs(os.path.join(data_transform_dir_path, self.data_transformation_config.TEST_TRANSFORM_DATA_ARTIFACT_DIR),exist_ok=True)
 
-        train_data = datasets.ImageFolder(os.path.join(self.data_ingestion_config.DATA_INGESTION_ARTIFACTS_DIR, self.data_ingestion_config.TRAIN_DATA_ARTIFACT_DIR), 
+        train_data = datasets.ImageFolder(os.path.join(self.data_ingestion_artifact.train_file_path), 
         transform= train_transform)
-        test_data = datasets.ImageFolder(os.path.join(self.data_ingestion_config.DATA_INGESTION_ARTIFACTS_DIR, self.data_ingestion_config.TEST_DATA_ARTIFACT_DIR),
+        test_data = datasets.ImageFolder(os.path.join(self.data_ingestion_artifact.test_file_path),
         transform= test_transform)
         
         
