@@ -1,6 +1,5 @@
 import os
 import sys
-from typing import Tuple
 from zipfile import Path, ZipFile
 from xray.entity.config_entity import DataIngestionConfig
 from xray.entity.artifacts_entity import DataIngestionArtifacts
