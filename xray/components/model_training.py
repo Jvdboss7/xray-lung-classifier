@@ -1,13 +1,9 @@
 import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader
 from xray.entity.config_entity import ModelTrainerConfig
 from xray.entity.artifacts_entity import ModelTrainerArtifacts, DataTransformationArtifacts
 from xray.constants import *
 import torch.nn.functional as F
-from torchvision import datasets, transforms, models
 from torch.optim.lr_scheduler import StepLR 
-# from xray.models import model
 from torchsummary import summary
 from tqdm import tqdm
 import os

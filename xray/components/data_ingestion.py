@@ -87,7 +87,6 @@ class DataIngestion:
             self.get_data_from_s3()
             self.unzip_and_clean()
             train_file_path, test_file_path = self.train_test_split()
-            #self.remove_raw_data_dir()
             data_ingestion_artifact = DataIngestionArtifacts(train_file_path=train_file_path, 
                                                                 test_file_path=test_file_path)
             return data_ingestion_artifact

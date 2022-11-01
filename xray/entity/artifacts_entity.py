@@ -18,3 +18,9 @@ class ModelTrainerArtifacts:
 @dataclass
 class ModelEvaluationArtifacts:
     model_accuracy: int 
+
+# Model Pusher Artifacts
+@dataclass
+class ModelPusherArtifacts:
+    bucket_name: str
+    s3_model_path: str

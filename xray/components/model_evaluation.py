@@ -1,11 +1,9 @@
 import sys
-#from pickletools import optimize
 import torch 
 from torch.nn import CrossEntropyLoss
 from xray.components.data_transformation import DataTransformation
 from xray.entity.artifacts_entity import ModelEvaluationArtifacts,DataIngestionArtifacts, DataTransformationArtifacts, ModelTrainerArtifacts
 from xray.entity.config_entity import ModelEvaluationConfig, DataTransformationConfig
-
 from torch.optim import SGD
 from xray.models.model import Net
 from xray.exception import XrayException
@@ -30,14 +28,11 @@ class ModelEvaluation:
 
             model = Net()
 
-            #model.load_state_dict(torch.load('artifacts/TrainedModel/model.pt'))
             load_model_path = self.model_trainer_artifact.trained_model_path
             model.load_state_dict(torch.load(load_model_path))
 
             model.to(self.model_evaluation_config.DEVICE)
 
-
-            # net = torch.load('artifacts/training/model.pt').to(self.device)
             cost = CrossEntropyLoss()
             optimizer = SGD(model.parameters(), lr=0.01, momentum=0.8)
             model.eval()
@@ -62,7 +57,6 @@ class ModelEvaluation:
 
                     for i in zip(images, labels, predictions):
                         h = list(i)
-                        # h[0] = wandb.Image(h[0])
                         holder.append(h)
 
                     print(f"Actual_Labels : {labels}     Predictions : {predictions}     labels : {loss.item():.4f}", )
