@@ -49,4 +49,4 @@ OPTIMIZER = torch.optim.SGD(MODEL.parameters(), lr=0.01, momentum=0.8)
 PARAMS_EPOCHS = 3
 STEP_SIZE = 6
 GAMMA = 0.5
-EPOCH = 2
+EPOCH = 1

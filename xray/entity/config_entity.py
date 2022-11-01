@@ -50,3 +50,12 @@ class ModelTrainerConfig:
         self.MODEL: str = MODEL 
         self.OPTIMIZER = OPTIMIZER
         self.DEVICE = DEVICE 
+        
+@dataclass
+class ModelEvaluationConfig:
+    def __init__(self):
+        self.DEVICE = DEVICE 
+        self.TEST_LOSS: int = 0
+        self.TEST_ACCURACY: int = 0
+        self.TOTAL: int = 0
+        self.TOTAL_BATCH: int = 0

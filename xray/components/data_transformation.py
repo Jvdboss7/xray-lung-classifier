@@ -38,17 +38,15 @@ class DataTransformation:
         return test_transform
 
     def data_loader(self):
-        data_transform_dir_path = self.data_transformation_config.DATA_TRANSFORMATION_ARTIFACTS_DIR
+        #data_transform_dir_path = self.data_transformation_config.DATA_TRANSFORMATION_ARTIFACTS_DIR
         train_transform = self.transforming_training_data()
         test_transform = self.transforming_testing_data()
         
         # os.makedirs(os.path.join(data_transform_dir_path,self.data_transformation_config.TRAIN_TRANSFORM_DATA_ARTIFACT_DIR),exist_ok=True)
         # os.makedirs(os.path.join(data_transform_dir_path, self.data_transformation_config.TEST_TRANSFORM_DATA_ARTIFACT_DIR),exist_ok=True)
 
-        train_data = datasets.ImageFolder(os.path.join(self.data_ingestion_artifact.train_file_path), 
-        transform= train_transform)
-        test_data = datasets.ImageFolder(os.path.join(self.data_ingestion_artifact.test_file_path),
-        transform= test_transform)
+        train_data = datasets.ImageFolder(os.path.join(self.data_ingestion_artifact.train_file_path), transform= train_transform)
+        test_data = datasets.ImageFolder(os.path.join(self.data_ingestion_artifact.test_file_path), transform= test_transform)
         
         
         train_loader = DataLoader(train_data,
@@ -57,6 +55,7 @@ class DataTransformation:
         test_loader = DataLoader(test_data,
                                 batch_size=self.data_transformation_config.BATCH_SIZE , shuffle= self.data_transformation_config.SHUFFLE,
                                 pin_memory= self.data_transformation_config.PIN_MEMORY)
+
         class_names = train_data.classes
         # print(train_loader())
         # self.data_transformation_config.TRAIN_TRANSFORM_DATA_ARTIFACT_DIR = train_loader
@@ -65,6 +64,7 @@ class DataTransformation:
         print(class_names)
         print(f'Number of train images: {len(train_data)}')
         print(f'Number of test images: {len(test_data)}')
+        print(train_loader)
         return train_loader, test_loader
 
     def initiate_data_transformation(self) -> DataTransformationArtifacts:

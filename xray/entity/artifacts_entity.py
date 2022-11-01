@@ -14,3 +14,7 @@ class DataTransformationArtifacts:
 @dataclass
 class ModelTrainerArtifacts:
     trained_model_path: str
+
+@dataclass
+class ModelEvaluationArtifacts:
+    model_accuracy: int 
