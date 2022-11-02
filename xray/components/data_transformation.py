@@ -26,7 +26,7 @@ class DataTransformation:
                                 self.data_transformation_config.NORMALIZE_LIST_2)
         ])
         return train_transform
-
+                        
     def transforming_testing_data(self):
         test_transform = transforms.Compose([
         transforms.Resize(self.data_transformation_config.RESIZE),

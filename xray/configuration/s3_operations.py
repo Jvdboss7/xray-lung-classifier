@@ -43,6 +43,7 @@ class S3Operation:
             )
 
             conv_func = lambda: StringIO(func()) if make_readable is True else func()
+            
 
             logging.info("Exited the read_object method of S3Operations class")
 
@@ -122,9 +123,9 @@ class S3Operation:
 
         try:
             func = (
-                lambda: model_name + MODEL_SAVE_FORMAT
+                lambda: model_name
                 if model_dir is None
-                else model_dir + "/" + model_name + MODEL_SAVE_FORMAT
+                else model_dir + "/" + model_name
             )
 
             model_file = func()
@@ -133,11 +134,8 @@ class S3Operation:
 
             model_obj = self.read_object(f_obj, decode=False)
 
-            model = pickle.loads(model_obj)
-
+            return model_obj
             logging.info("Exited the load_model method of S3Operations class")
-
-            return model
 
         except Exception as e:
             raise XrayException(e, sys) from e
@@ -215,14 +213,13 @@ class S3Operation:
             raise XrayException(e, sys) from e
 
     
-    def read_data_from_s3(self, filename: str, bucket_name: str, output_dir: str) -> None:
+    def read_data_from_s3(self, filename: str, bucket_name: str, output_filename: str) -> None:
         try:
-
             bucket = self.get_bucket(bucket_name)
             
-            obj = bucket.download_file(filename, output_dir)
+            obj = bucket.download_file(Key=filename, Filename=output_filename)
 
-            return obj
+            return output_filename
             
         except Exception as e:
             raise XrayException(e, sys) from e

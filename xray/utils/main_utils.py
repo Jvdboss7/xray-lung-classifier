@@ -5,6 +5,10 @@ from yaml import safe_dump
 from xray.constants import *
 from xray.exception import XrayException
 import logging
+from PIL import Image
+import io
+from xray.components.data_transformation import DataTransformation
+
 
 # initiatlizing logger
 logger = logging.getLogger(__name__)
@@ -49,6 +53,13 @@ class MainUtils:
 
         except Exception as e:
             raise XrayException(e, sys) from e
+
+    def transform_image(image_bytes):
+        my_transforms = transforming_training_data()
+
+        image = Image.open(io.BytesIO(image_bytes))
+
+        return my_transforms(image).unsqueeze(0)
 
 
 

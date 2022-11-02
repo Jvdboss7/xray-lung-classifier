@@ -11,7 +11,41 @@
 
 # # s3.read_data_from_s3(ZIP_FILE_NAME, BUCKET_NAME, data_ingestion.ZIP_FILE_DIR)
 
-from xray.pipeline.pipeline import TrainPipeline
-runner = TrainPipeline()
+# from xray.pipeline.train_pipeline import TrainPipeline
+from xray.pipeline.prediction_pipeline import PredictionPipeline
 
-runner.run_pipeline()
+
+# runner = TrainPipeline()
+
+# runner.run_pipeline()
+
+
+
+prediction_pipeline = PredictionPipeline()
+prediction_pipeline.run_pipeline(r"artifacts/DataIngestionArtifacts/Train/PNEUMONIA/BACTERIA-37006-0001.jpeg")
+
+# from xray.configuration.s3_operations import S3Operation
+# import torch
+# from xray.models.model import Net
+
+# s3 = S3Operation()
+
+# best_model_path = s3.read_data_from_s3("model.pt","lungxray","artifacts/model.pt")
+
+# model = Net()
+
+# model.load_state_dict(torch.load(best_model_path, map_location="cpu"))
+
+# model.eval()
+
+
+# def get_prediction(image_bytes):
+#     tensor = transform_image(image_bytes=image_bytes)
+
+#     outputs = model.forward(tensor)
+
+#     _, y_hat = outputs.max(1)
+
+#     predicted_idx = str(y_hat.item())
+
+#     return class_idx[predicted_idx]
