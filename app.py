@@ -34,7 +34,7 @@ async def training():
     try:
         train_pipeline = TrainPipeline()
 
-        await train_pipeline.run_pipeline()
+        train_pipeline.run_pipeline()
 
         return Response("Training successful !!")
 
