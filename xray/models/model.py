@@ -70,7 +70,8 @@ class Net(nn.Module):
         self.convolution_block_out = nn.Sequential(
               nn.Conv2d(in_channels=16, out_channels=2, kernel_size=(4, 4), padding=0, bias=True),
         )
-    def forward(self, x):
+
+    def forward(self, x) -> float:
         x = self.convolution_block1(x)
         x = self.pooling11(x)
         x = self.convolution_block2(x)

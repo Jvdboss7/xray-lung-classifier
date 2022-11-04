@@ -7,6 +7,9 @@ from torch.optim.lr_scheduler import StepLR
 from torchsummary import summary
 from tqdm import tqdm
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ModelTrainer:
     def __init__(self,model, data_transformation_artifact: DataTransformationArtifacts,model_trainer_config= ModelTrainerConfig):
@@ -15,7 +18,7 @@ class ModelTrainer:
         self.model = model
         self.device = DEVICE
 
-    def train(self,):
+    def train(self,) -> None:
         """
         Description: To train the model 
         
@@ -23,6 +26,7 @@ class ModelTrainer:
         
         output: loss, batch id and accuracy
         """
+        logger.info("Entered the train method of Model trainer class")
         self.model.train()
         pbar = tqdm(self.data_transformation_artifact.transformed_train_object)
         correct = 0
@@ -46,9 +50,9 @@ class ModelTrainer:
             correct += pred.eq(target.view_as(pred)).sum().item()
             processed += len(data)
             pbar.set_description(desc= f'Loss={loss.item()} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}')
+        logger.info("Exited the train method of Model trainer class")
 
-
-    def test(self,):
+    def test(self,) -> None:
         """
         Description: To test the model
         
@@ -57,6 +61,7 @@ class ModelTrainer:
         output: average loss and accuracy
         
         """
+        logger.info("Entered the test method of Model trainer class")        
         self.model.eval()
         test_loss = 0
         correct = 0
@@ -71,8 +76,10 @@ class ModelTrainer:
         print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
                 test_loss, correct, len(self.data_transformation_artifact.transformed_test_object.dataset),
                 100. * correct / len(self.data_transformation_artifact.transformed_test_object.dataset)))
+        logger.info("Exited the test method of Model trainer class") 
 
-    def initiate_model_trainer(self):
+    def initiate_model_trainer(self) -> ModelTrainerArtifacts:
+        logger.info("Entered the initiate_model_trainer method of Model trainer class")
         # Defining the params for training 
         print(self.model)
         model =  self.model_trainer_config.MODEL.to(self.model_trainer_config.DEVICE)
@@ -91,4 +98,6 @@ class ModelTrainer:
         torch.save(model.state_dict(),self.model_trainer_config.TRAINED_MODEL_PATH)
         
         model_trainer_artifact= ModelTrainerArtifacts(trained_model_path=self.model_trainer_config.TRAINED_MODEL_PATH)
+        logger.info("exited the initiate_model_trainer method of Model trainer class")
         return model_trainer_artifact
+        

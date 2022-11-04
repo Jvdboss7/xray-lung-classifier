@@ -72,12 +72,16 @@ class TrainPipeline:
 
 
     def start_model_trainer(self, data_transformation_artifact: DataTransformationArtifacts) -> ModelTrainerArtifacts:
+        logger.info(
+            "Entered the start_model_trainer method of TrainPipeline class"
+        )
         try:
             model_trainer = ModelTrainer(model=Net(),
                 data_transformation_artifact=data_transformation_artifact,
                 model_trainer_config=self.model_trainer_config
             )
             model_trainer_artifact = model_trainer.initiate_model_trainer()
+            logger.info("Exited the start_model_trainer method of TrainPipeline class")
             return model_trainer_artifact
 
         except Exception as e:
@@ -85,11 +89,13 @@ class TrainPipeline:
 
     def start_model_evaluation(self, model_trainer_artifact: ModelTrainerArtifacts, data_ingestion_artifact: DataIngestionArtifacts,
                                     data_transformation_artifact: DataTransformationArtifacts) -> ModelEvaluationArtifacts:
+        logger.info("Entered the start_model_evaluation method of TrainPipeline class")
         try:
             use_cuda = torch.cuda.is_available()
             model_evaluation = ModelEvaluation(data_ingestion_artifact= data_ingestion_artifact, data_transformation_artifact = data_transformation_artifact, 
                                                 model_evaluation_config=self.model_evaluation_config, model_trainer_artifact=model_trainer_artifact)
             model_evaluation_artifact = model_evaluation.initiate_model_evaluation()
+            logger.info("Exited the start_model_evaluation method of TrainPipeline class")
             return model_evaluation_artifact
 
         except Exception as e:

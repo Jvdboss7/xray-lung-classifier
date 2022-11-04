@@ -7,6 +7,9 @@ from xray.entity.config_entity import ModelEvaluationConfig, DataTransformationC
 from torch.optim import SGD
 from xray.models.model import Net
 from xray.exception import XrayException
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ModelEvaluation:
 
@@ -22,6 +25,7 @@ class ModelEvaluation:
         self.data_transformation = DataTransformation(data_transformation_config=DataTransformationConfig(), data_ingestion_artifact=self.data_ingestion_artifact)
 
     def configuration(self):
+        logger.info("Entered the configuration method of Model evaluation class")
         try:
             train_Dataloader, test_DataLoader = self.data_transformation.data_loader()
             print(test_DataLoader)
@@ -36,11 +40,13 @@ class ModelEvaluation:
             cost = CrossEntropyLoss()
             optimizer = SGD(model.parameters(), lr=0.01, momentum=0.8)
             model.eval()
+            logger.info("Exited the configuration method of Model evaluation class")
             return test_DataLoader, model, cost, optimizer
         except Exception as e:
             raise e
 
-    def test_net(self):
+    def test_net(self) -> float:
+        logger.info("Entered the test_net method of Model evaluation class")
         try:
             test_DataLoader, net, cost, optimizer = self.configuration()
 
@@ -68,17 +74,20 @@ class ModelEvaluation:
 
                     print(f"Model  -->   Loss : {self.model_evaluation_config.TEST_LOSS/ self.model_evaluation_config.TOTAL_BATCH} Accuracy : {(self.model_evaluation_config.TEST_ACCURACY / self.model_evaluation_config.TOTAL) * 100} %")
             accuracy = (self.model_evaluation_config.TEST_ACCURACY/ self.model_evaluation_config.TOTAL) * 100
+            logger.info("Exited the test_net method of Model evaluation class")
             return accuracy
 
         except Exception as e:
             raise e
 
     def initiate_model_evaluation(self):
-
+        logger.info("Entered the initiate_model_evaluation method of Model evaluation class")
         try:
             self.configuration()
             accuracy=self.test_net()
             model_evaluation_artifact = ModelEvaluationArtifacts(model_accuracy=accuracy)
+            logger.info("Exited the initiate_model_evaluation method of Model evaluation class")
             return model_evaluation_artifact
+
         except Exception as e:
             raise XrayException(e, sys) from e

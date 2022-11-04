@@ -50,7 +50,7 @@ class ModelPusher:
                 bucket_name=self.model_pusher_config.BUCKET_NAME,
                 s3_model_path=self.model_pusher_config.S3_MODEL_KEY_PATH,
             )
-
+            logger.info("Exited the initiate_model_pusher method of ModelTrainer class")
             return model_pusher_artifact
 
         except Exception as e:

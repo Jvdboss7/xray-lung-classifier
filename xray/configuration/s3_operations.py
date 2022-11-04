@@ -8,11 +8,11 @@ import boto3
 from xray.exception import XrayException
 from mypy_boto3_s3.service_resource import Bucket
 from xray.constants import *
-
-
-
 import logging
+
 MODEL_SAVE_FORMAT = ".pt"
+
+logger = logging.getLogger(__name__)
 
 class S3Operation:
     s3_client=None
@@ -25,7 +25,7 @@ class S3Operation:
             __access_key_id = os.getenv(AWS_ACCESS_KEY_ID_ENV_KEY, )
             __secret_access_key = os.getenv(AWS_SECRET_ACCESS_KEY_ENV_KEY, )
             if __access_key_id is None:
-                raise Exception(f"Environment variable: {AWS_ACCESS_KEY_ID_ENV_KEY} is not not set.")
+                raise Exception(f"Environment variable: {AWS_ACCESS_KEY_ID_ENV_KEY} is not set.")
             if __secret_access_key is None:
                 raise Exception(f"Environment variable: {AWS_SECRET_ACCESS_KEY_ENV_KEY} is not set.")
         
@@ -55,7 +55,7 @@ class S3Operation:
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
-        logging.info("Entered the read_object method of S3Operations class")
+        logger.info("Entered the read_object method of S3Operations class")
 
         try:
             func = (
@@ -67,7 +67,7 @@ class S3Operation:
             conv_func = lambda: StringIO(func()) if make_readable is True else func()
             
 
-            logging.info("Exited the read_object method of S3Operations class")
+            logger.info("Exited the read_object method of S3Operations class")
 
             return conv_func()
 
@@ -85,12 +85,12 @@ class S3Operation:
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
-        logging.info("Entered the get_bucket method of S3Operations class")
+        logger.info("Entered the get_bucket method of S3Operations class")
 
         try:
             bucket = self.s3_resource.Bucket(bucket_name)
 
-            logging.info("Exited the get_bucket method of S3Operations class")
+            logger.info("Exited the get_bucket method of S3Operations class")
 
             return bucket
 
@@ -110,7 +110,7 @@ class S3Operation:
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
-        logging.info("Entered the get_file_object method of S3Operations class")
+        logger.info("Entered the get_file_object method of S3Operations class")
 
         try:
             bucket = self.get_bucket(bucket_name)
@@ -121,7 +121,7 @@ class S3Operation:
 
             file_objs = func(lst_objs)
 
-            logging.info("Exited the get_file_object method of S3Operations class")
+            logger.info("Exited the get_file_object method of S3Operations class")
 
             return file_objs
 
@@ -141,7 +141,7 @@ class S3Operation:
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
-        logging.info("Entered the load_model method of S3Operations class")
+        logger.info("Entered the load_model method of S3Operations class")
 
         try:
             func = (
@@ -157,7 +157,7 @@ class S3Operation:
             model_obj = self.read_object(f_obj, decode=False)
 
             return model_obj
-            logging.info("Exited the load_model method of S3Operations class")
+            logger.info("Exited the load_model method of S3Operations class")
 
         except Exception as e:
             raise XrayException(e, sys) from e
@@ -173,7 +173,7 @@ class S3Operation:
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
-        logging.info("Entered the create_folder method of S3Operations class")
+        logger.info("Entered the create_folder method of S3Operations class")
 
         try:
             self.s3_resource.Object(bucket_name, folder_name).load()
@@ -187,7 +187,7 @@ class S3Operation:
             else:
                 pass
 
-            logging.info("Exited the create_folder method of S3Operations class")
+            logger.info("Exited the create_folder method of S3Operations class")
 
     def upload_file(
         self,
@@ -206,10 +206,10 @@ class S3Operation:
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
-        logging.info("Entered the upload_file method of S3Operations class")
+        logger.info("Entered the upload_file method of S3Operations class")
 
         try:
-            logging.info(
+            logger.info(
                 f"Uploading {from_filename} file to {to_filename} file in {bucket_name} bucket"
             )
 
@@ -217,19 +217,19 @@ class S3Operation:
                 from_filename, bucket_name, to_filename
             )
 
-            logging.info(
+            logger.info(
                 f"Uploaded {from_filename} file to {to_filename} file in {bucket_name} bucket"
             )
 
             if remove is True:
                 os.remove(from_filename)
 
-                logging.info(f"Remove is set to {remove}, deleted the file")
+                logger.info(f"Remove is set to {remove}, deleted the file")
 
             else:
-                logging.info(f"Remove is set to {remove}, not deleted the file")
+                logger.info(f"Remove is set to {remove}, not deleted the file")
 
-            logging.info("Exited the upload_file method of S3Operations class")
+            logger.info("Exited the upload_file method of S3Operations class")
 
         except Exception as e:
             raise XrayException(e, sys) from e
