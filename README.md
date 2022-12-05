@@ -14,11 +14,10 @@ The dataset was shared by Apollo diagnostic center for research purpose. So we h
 ## Tech Stack Used
 1. Python 
 2. FastAPI 
-3. Computer Vision
-4. Pytorch
-5. Docker
-6. AWS
-7. Azure
+3. Pytorch
+4. Docker
+5. AWS
+6. Azure
 
 ## Infrastructure required
 1. AWS S3
@@ -26,7 +25,6 @@ The dataset was shared by Apollo diagnostic center for research purpose. So we h
 3. Github Actions
 
 ## How to run
-Before you run this project make sure you have MongoDB Atlas account and you have the Car dekho dataset into it.
 
 Step 1. Download the zip file
 ```
