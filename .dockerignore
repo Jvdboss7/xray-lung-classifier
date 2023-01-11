@@ -1,7 +1,6 @@
 .github/
 assignment/
 flowcharts/
-lung_xray_classifier.egg-info/
-notebook
+notebook/
 venv/
 demo.py

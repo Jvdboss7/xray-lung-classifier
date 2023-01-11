@@ -1,7 +1,6 @@
-import logging
 import os
 from from_root import from_root
-from xray.constants import *
+from xray.constant.training_pipeline import *
 
 logs_path = os.path.join(from_root(), ARTIFACTS_DIR, LOGS_DIR)
 
