@@ -15,11 +15,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class PredictionPipeline:
     def __init__(self):
         imsize = 224
-        self.loader = transforms.Compose([transforms.Resize(imsize),\
-                             transforms.ToTensor()])
+        self.loader = transforms.Compose(
+            [transforms.Resize(imsize), transforms.ToTensor()]
+        )
         self.s3 = S3Operation()
         self.bucket_name = BUCKET_NAME
 
@@ -35,12 +37,12 @@ class PredictionPipeline:
                     transforms.Resize(RESIZE),
                     transforms.CenterCrop(CENTERCROP),
                     transforms.ToTensor(),
-                    transforms.Normalize(mean, std)
+                    transforms.Normalize(mean, std),
                 ]
             )
             logger.info("Exited the get_train_aug method of PredictionPipeline class")
             return train_aug
-            
+
         except Exception as e:
             raise XrayException(e, sys) from e
 
@@ -49,7 +51,7 @@ class PredictionPipeline:
         logger.info("Entered the image_loader method of PredictionPipeline class")
         try:
             my_transforms = self.get_train_aug()
-            image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
+            image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
             image = torch.from_numpy(np.array(my_transforms(image).unsqueeze(0)))
             image = image.reshape(1, 3, 224, 224)
             logger.info("Exited the image_loader method of PredictionPipeline class")
@@ -62,22 +64,28 @@ class PredictionPipeline:
 
         """
         Method Name :   predict
-        Description :   This method predicts the image. 
-        
-        Output      :   Predictions 
+        Description :   This method predicts the image.
+
+        Output      :   Predictions
         """
         logger.info("Entered the get_model_from_s3 method of PredictionPipeline class")
         try:
-            # Loading the best model from s3 bucket     
+            # Loading the best model from s3 bucket
             os.makedirs("artifacts/PredictModel", exist_ok=True)
-            predict_model_path = os.path.join(os.getcwd(),"artifacts", "PredictModel", TRAINED_MODEL_NAME)
-            best_model_path = self.s3.read_data_from_s3(TRAINED_MODEL_NAME,self.bucket_name,predict_model_path)
-            logger.info("Exited the get_model_from_s3 method of PredictionPipeline class")
+            predict_model_path = os.path.join(
+                os.getcwd(), "artifacts", "PredictModel", TRAINED_MODEL_NAME
+            )
+            best_model_path = self.s3.read_data_from_s3(
+                TRAINED_MODEL_NAME, self.bucket_name, predict_model_path
+            )
+            logger.info(
+                "Exited the get_model_from_s3 method of PredictionPipeline class"
+            )
             return best_model_path
-        
+
         except Exception as e:
             raise XrayException(e, sys) from e
-    
+
     def prediction(self, best_model_path: str, image_tensor) -> float:
         logger.info("Entered the prediction method of PredictionPipeline class")
         try:
@@ -92,7 +100,7 @@ class PredictionPipeline:
             return label
 
         except Exception as e:
-            raise XrayException(e, sys) from e       
+            raise XrayException(e, sys) from e
 
     def run_pipeline(self, data):
         logger.info("Entered the run_pipeline method of PredictionPipeline class")

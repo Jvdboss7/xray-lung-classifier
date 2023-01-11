@@ -1,28 +1,27 @@
-from xray.models.model import Net 
 import torch
-from torchsummary import summary
 
+from xray.models.model import Net
 
 # Data Ingestion Constants
-ARTIFACTS_DIR = 'artifacts'
-LOGS_DIR = 'logs'
-LOGS_FILE_NAME = 'xray.log'
+ARTIFACTS_DIR = "artifacts"
+LOGS_DIR = "logs"
+LOGS_FILE_NAME = "xray.log"
 
-BUCKET_NAME = 'lungxray'
-ZIP_FILE_NAME = 'chest_xray.zip'
-CLASS_LABEL_1 = 'NORMAL'
-CLASS_LABEL_2 = 'PNEUMONIA'
-RAW_FILE_NAME = 'chest_xray'
+BUCKET_NAME = "lungxray"
+ZIP_FILE_NAME = "chest_xray.zip"
+CLASS_LABEL_1 = "NORMAL"
+CLASS_LABEL_2 = "PNEUMONIA"
+RAW_FILE_NAME = "chest_xray"
 
-DATA_INGESTION_ARTIFACTS_DIR = 'DataIngestionArtifacts'
-DATA_INGESTION_TRAIN_DIR = 'Train'
-DATA_INGESTION_TEST_DIR = 'Test'
+DATA_INGESTION_ARTIFACTS_DIR = "DataIngestionArtifacts"
+DATA_INGESTION_TRAIN_DIR = "Train"
+DATA_INGESTION_TEST_DIR = "Test"
 PARAMS_TEST_RATIO = 0.2
 
-# Data transformation constants 
-DATA_TRANSFORMATION_ARTIFACTS_DIR = 'DataTransformationArtifacts'
-DATA_TRANSFORMATION_TRAIN_DIR = 'Train'
-DATA_TRANSFORMATION_TEST_DIR = 'Test'
+# Data transformation constants
+DATA_TRANSFORMATION_ARTIFACTS_DIR = "DataTransformationArtifacts"
+DATA_TRANSFORMATION_TRAIN_DIR = "Train"
+DATA_TRANSFORMATION_TEST_DIR = "Test"
 
 BRIGHTNESS = 0.10
 CONTRAST = 0.1
@@ -36,11 +35,11 @@ NORMALIZE_LIST_2 = [0.229, 0.224, 0.225]
 
 BATCH_SIZE = 2
 SHUFFLE = False
-PIN_MEMORY= True
+PIN_MEMORY = True
 
-# Model Training Constants 
-TRAINED_MODEL_DIR = 'TrainedModel'
-TRAINED_MODEL_NAME = 'model.pt'
+# Model Training Constants
+TRAINED_MODEL_DIR = "TrainedModel"
+TRAINED_MODEL_NAME = "model.pt"
 MODEL = Net()
 use_cuda = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if use_cuda else "cpu")
@@ -54,10 +53,12 @@ EPOCH = 1
 APP_HOST = "0.0.0.0"
 APP_PORT = 8001
 
-# Prediction Constants
-PREDICTION_LABEL = {"0" : CLASS_LABEL_1, "1" : CLASS_LABEL_2}
+MODEL_SAVE_FORMAT = ".pt"
 
-# AWS CONSTANTS
+PREDICTION_LABEL = {"0": CLASS_LABEL_1, "1": CLASS_LABEL_2}
+
 AWS_ACCESS_KEY_ID_ENV_KEY = "AWS_ACCESS_KEY_ID"
+
 AWS_SECRET_ACCESS_KEY_ENV_KEY = "AWS_SECRET_ACCESS_KEY"
+
 REGION_NAME = "ap-south-1"

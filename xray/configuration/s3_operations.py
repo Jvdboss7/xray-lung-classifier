@@ -1,46 +1,57 @@
+import logging
 import os
-import pickle
 import sys
 from io import StringIO
 from typing import List, Union
-from botocore.exceptions import ClientError
-import boto3
-from xray.exception import XrayException
-from mypy_boto3_s3.service_resource import Bucket
-from xray.constants import *
-import logging
+from xray.constants import MODEL_SAVE_FORMAT
 
-MODEL_SAVE_FORMAT = ".pt"
+import boto3
+from botocore.exceptions import ClientError
+from mypy_boto3_s3.service_resource import Bucket
+
+from xray.constants import *
+from xray.exception import XrayException
 
 logger = logging.getLogger(__name__)
 
-class S3Operation:
-    s3_client=None
-    s3_resource = None
-    def __init__(self):
-        # self.s3_client = boto3.client("s3")
 
-        # self.s3_resource = boto3.resource("s3")
-        if S3Operation.s3_resource==None or S3Operation.s3_client==None:
-            __access_key_id = os.getenv(AWS_ACCESS_KEY_ID_ENV_KEY, )
-            __secret_access_key = os.getenv(AWS_SECRET_ACCESS_KEY_ENV_KEY, )
+class S3Operation:
+    s3_client = None
+
+    s3_resource = None
+
+    def __init__(self):
+        if S3Operation.s3_resource == None or S3Operation.s3_client == None:
+            __access_key_id = os.getenv(
+                AWS_ACCESS_KEY_ID_ENV_KEY,
+            )
+            __secret_access_key = os.getenv(
+                AWS_SECRET_ACCESS_KEY_ENV_KEY,
+            )
             if __access_key_id is None:
-                raise Exception(f"Environment variable: {AWS_ACCESS_KEY_ID_ENV_KEY} is not set.")
+                raise Exception(
+                    f"Environment variable: {AWS_ACCESS_KEY_ID_ENV_KEY} is not set."
+                )
             if __secret_access_key is None:
-                raise Exception(f"Environment variable: {AWS_SECRET_ACCESS_KEY_ENV_KEY} is not set.")
-        
-            S3Operation.s3_resource = boto3.resource('s3',
-                                            aws_access_key_id=__access_key_id,
-                                            aws_secret_access_key=__secret_access_key,
-                                            region_name=REGION_NAME
-                                            )
-            S3Operation.s3_client = boto3.client('s3',
-                                        aws_access_key_id=__access_key_id,
-                                        aws_secret_access_key=__secret_access_key,
-                                        region_name=REGION_NAME
-                                        )
+                raise Exception(
+                    f"Environment variable: {AWS_SECRET_ACCESS_KEY_ENV_KEY} is not set."
+                )
+
+            S3Operation.s3_resource = boto3.resource(
+                "s3",
+                aws_access_key_id=__access_key_id,
+                aws_secret_access_key=__secret_access_key,
+                region_name=REGION_NAME,
+            )
+            S3Operation.s3_client = boto3.client(
+                "s3",
+                aws_access_key_id=__access_key_id,
+                aws_secret_access_key=__secret_access_key,
+                region_name=REGION_NAME,
+            )
         self.s3_resource = S3Operation.s3_resource
         self.s3_client = S3Operation.s3_client
+
     @staticmethod
     def read_object(
         object_name: str, decode: bool = True, make_readable: bool = False
@@ -65,7 +76,6 @@ class S3Operation:
             )
 
             conv_func = lambda: StringIO(func()) if make_readable is True else func()
-            
 
             logger.info("Exited the read_object method of S3Operations class")
 
@@ -234,14 +244,15 @@ class S3Operation:
         except Exception as e:
             raise XrayException(e, sys) from e
 
-    
-    def read_data_from_s3(self, filename: str, bucket_name: str, output_filename: str) -> None:
+    def read_data_from_s3(
+        self, filename: str, bucket_name: str, output_filename: str
+    ) -> None:
         try:
             bucket = self.get_bucket(bucket_name)
-            
+
             obj = bucket.download_file(Key=filename, Filename=output_filename)
 
             return output_filename
-            
+
         except Exception as e:
             raise XrayException(e, sys) from e

@@ -1,16 +1,18 @@
 import torch
-from xray.entity.config_entity import (DataIngestionConfig,
+from xray.entity.config_entity import (
+    DataIngestionConfig,
     DataTransformationConfig,
     ModelTrainerConfig,
     ModelEvaluationConfig,
     ModelPusherConfig,
-    )
-from xray.entity.artifacts_entity import (DataIngestionArtifacts,
+)
+from xray.entity.artifacts_entity import (
+    DataIngestionArtifacts,
     DataTransformationArtifacts,
     ModelTrainerArtifacts,
     ModelEvaluationArtifacts,
     ModelPusherArtifacts,
-    )
+)
 
 from xray.components.data_ingestion import DataIngestion
 from xray.components.data_transformation import DataTransformation
@@ -24,6 +26,7 @@ import logging
 import sys
 
 logger = logging.getLogger(__name__)
+
 
 class TrainPipeline:
     def __init__(self):
@@ -39,7 +42,8 @@ class TrainPipeline:
         try:
             logger.info("Getting the data from mongodb")
             data_ingestion = DataIngestion(
-                data_ingestion_config=self.data_ingestion_config, s3_operations= S3Operation()
+                data_ingestion_config=self.data_ingestion_config,
+                s3_operations=S3Operation(),
             )
             data_ingestion_artifact = data_ingestion.initiate_data_ingestion()
             logger.info("Got the train_set and test_set from s3")
@@ -49,13 +53,14 @@ class TrainPipeline:
         except Exception as e:
             raise XrayException(e, sys) from e
 
-    def start_data_transformation(self, data_ingestion_artifact: DataIngestionArtifacts) -> DataTransformationArtifacts:
+    def start_data_transformation(
+        self, data_ingestion_artifact: DataIngestionArtifacts
+    ) -> DataTransformationArtifacts:
         logger.info(
             "Entered the start_data_transformation method of TrainPipeline class"
         )
         try:
             data_transformation = DataTransformation(
-                
                 data_ingestion_artifact=data_ingestion_artifact,
                 data_transformation_config=self.data_transformation_config,
             )
@@ -70,40 +75,52 @@ class TrainPipeline:
         except Exception as e:
             raise XrayException(e, sys) from e
 
-
-    def start_model_trainer(self, data_transformation_artifact: DataTransformationArtifacts) -> ModelTrainerArtifacts:
-        logger.info(
-            "Entered the start_model_trainer method of TrainPipeline class"
-        )
+    def start_model_trainer(
+        self, data_transformation_artifact: DataTransformationArtifacts
+    ) -> ModelTrainerArtifacts:
+        logger.info("Entered the start_model_trainer method of TrainPipeline class")
         try:
-            model_trainer = ModelTrainer(model=Net(),
+            model_trainer = ModelTrainer(
+                model=Net(),
                 data_transformation_artifact=data_transformation_artifact,
-                model_trainer_config=self.model_trainer_config
+                model_trainer_config=self.model_trainer_config,
             )
             model_trainer_artifact = model_trainer.initiate_model_trainer()
             logger.info("Exited the start_model_trainer method of TrainPipeline class")
             return model_trainer_artifact
 
         except Exception as e:
-            raise XrayException(e, sys) 
+            raise XrayException(e, sys)
 
-    def start_model_evaluation(self, model_trainer_artifact: ModelTrainerArtifacts, data_ingestion_artifact: DataIngestionArtifacts,
-                                    data_transformation_artifact: DataTransformationArtifacts) -> ModelEvaluationArtifacts:
+    def start_model_evaluation(
+        self,
+        model_trainer_artifact: ModelTrainerArtifacts,
+        data_ingestion_artifact: DataIngestionArtifacts,
+        data_transformation_artifact: DataTransformationArtifacts,
+    ) -> ModelEvaluationArtifacts:
         logger.info("Entered the start_model_evaluation method of TrainPipeline class")
         try:
             use_cuda = torch.cuda.is_available()
-            model_evaluation = ModelEvaluation(data_ingestion_artifact= data_ingestion_artifact, data_transformation_artifact = data_transformation_artifact, 
-                                                model_evaluation_config=self.model_evaluation_config, model_trainer_artifact=model_trainer_artifact)
+            model_evaluation = ModelEvaluation(
+                data_ingestion_artifact=data_ingestion_artifact,
+                data_transformation_artifact=data_transformation_artifact,
+                model_evaluation_config=self.model_evaluation_config,
+                model_trainer_artifact=model_trainer_artifact,
+            )
             model_evaluation_artifact = model_evaluation.initiate_model_evaluation()
-            logger.info("Exited the start_model_evaluation method of TrainPipeline class")
+            logger.info(
+                "Exited the start_model_evaluation method of TrainPipeline class"
+            )
             return model_evaluation_artifact
 
         except Exception as e:
             raise XrayException(e, sys) from e
 
-
-    def start_model_pusher(self,
-        model_evaluation_artifacts: ModelEvaluationArtifacts,s3: S3Operation,) -> ModelPusherArtifacts:
+    def start_model_pusher(
+        self,
+        model_evaluation_artifacts: ModelEvaluationArtifacts,
+        s3: S3Operation,
+    ) -> ModelPusherArtifacts:
         logger.info("Entered the start_model_pusher method of TrainPipeline class")
         try:
             model_pusher = ModelPusher(
@@ -118,7 +135,7 @@ class TrainPipeline:
 
         except Exception as e:
             raise XrayException(e, sys) from e
-        
+
     def run_pipeline(self) -> None:
         logger.info("Entered the run_pipeline method of TrainPipeline class")
         try:
@@ -130,13 +147,16 @@ class TrainPipeline:
             model_trainer_artifact = self.start_model_trainer(
                 data_transformation_artifact=data_transformation_artifact
             )
-            model_evaluation_artifact = self.start_model_evaluation(model_trainer_artifact=model_trainer_artifact, data_ingestion_artifact=data_ingestion_artifact,
-                                                                    data_transformation_artifact= data_transformation_artifact
+            model_evaluation_artifact = self.start_model_evaluation(
+                model_trainer_artifact=model_trainer_artifact,
+                data_ingestion_artifact=data_ingestion_artifact,
+                data_transformation_artifact=data_transformation_artifact,
             )
-            model_pusher_artifact = self.start_model_pusher(model_evaluation_artifacts=model_evaluation_artifact,s3=self.s3_operations,
+            model_pusher_artifact = self.start_model_pusher(
+                model_evaluation_artifacts=model_evaluation_artifact,
+                s3=self.s3_operations,
             )
             logger.info("Exited the run_pipeline method of TrainPipeline class")
-            
+
         except Exception as e:
             raise XrayException(e, sys) from e
-

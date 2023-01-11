@@ -1,28 +1,41 @@
-import sys
-import torch 
-from torch.nn import CrossEntropyLoss
-from xray.components.data_transformation import DataTransformation
-from xray.entity.artifacts_entity import ModelEvaluationArtifacts,DataIngestionArtifacts, DataTransformationArtifacts, ModelTrainerArtifacts
-from xray.entity.config_entity import ModelEvaluationConfig, DataTransformationConfig
-from torch.optim import SGD
-from xray.models.model import Net
-from xray.exception import XrayException
 import logging
+import sys
+
+import torch
+from torch.nn import CrossEntropyLoss
+from torch.optim import SGD
+
+from xray.components.data_transformation import DataTransformation
+from xray.entity.artifacts_entity import (
+    DataIngestionArtifacts,
+    DataTransformationArtifacts,
+    ModelEvaluationArtifacts,
+    ModelTrainerArtifacts,
+)
+from xray.entity.config_entity import DataTransformationConfig, ModelEvaluationConfig
+from xray.exception import XrayException
+from xray.models.model import Net
 
 logger = logging.getLogger(__name__)
 
-class ModelEvaluation:
 
-    def __init__(self, data_ingestion_artifact: DataIngestionArtifacts, 
-                data_transformation_artifact: DataTransformationArtifacts,
-                model_evaluation_config: ModelEvaluationConfig,
-                model_trainer_artifact: ModelTrainerArtifacts) :
+class ModelEvaluation:
+    def __init__(
+        self,
+        data_ingestion_artifact: DataIngestionArtifacts,
+        data_transformation_artifact: DataTransformationArtifacts,
+        model_evaluation_config: ModelEvaluationConfig,
+        model_trainer_artifact: ModelTrainerArtifacts,
+    ):
 
         self.data_ingestion_artifact = data_ingestion_artifact
         self.data_transformation_artifact = data_transformation_artifact
         self.model_evaluation_config = model_evaluation_config
         self.model_trainer_artifact = model_trainer_artifact
-        self.data_transformation = DataTransformation(data_transformation_config=DataTransformationConfig(), data_ingestion_artifact=self.data_ingestion_artifact)
+        self.data_transformation = DataTransformation(
+            data_transformation_config=DataTransformationConfig(),
+            data_ingestion_artifact=self.data_ingestion_artifact,
+        )
 
     def configuration(self):
         logger.info("Entered the configuration method of Model evaluation class")
@@ -65,15 +78,24 @@ class ModelEvaluation:
                         h = list(i)
                         holder.append(h)
 
-                    print(f"Actual_Labels : {labels}     Predictions : {predictions}     labels : {loss.item():.4f}", )
+                    print(
+                        f"Actual_Labels : {labels}     Predictions : {predictions}     labels : {loss.item():.4f}",
+                    )
 
                     self.model_evaluation_config.TEST_LOSS += loss.item()
-                    self.model_evaluation_config.TEST_ACCURACY += (predictions == labels).sum().item()
+                    self.model_evaluation_config.TEST_ACCURACY += (
+                        (predictions == labels).sum().item()
+                    )
                     self.model_evaluation_config.TOTAL_BATCH += 1
                     self.model_evaluation_config.TOTAL += labels.size(0)
 
-                    print(f"Model  -->   Loss : {self.model_evaluation_config.TEST_LOSS/ self.model_evaluation_config.TOTAL_BATCH} Accuracy : {(self.model_evaluation_config.TEST_ACCURACY / self.model_evaluation_config.TOTAL) * 100} %")
-            accuracy = (self.model_evaluation_config.TEST_ACCURACY/ self.model_evaluation_config.TOTAL) * 100
+                    print(
+                        f"Model  -->   Loss : {self.model_evaluation_config.TEST_LOSS/ self.model_evaluation_config.TOTAL_BATCH} Accuracy : {(self.model_evaluation_config.TEST_ACCURACY / self.model_evaluation_config.TOTAL) * 100} %"
+                    )
+            accuracy = (
+                self.model_evaluation_config.TEST_ACCURACY
+                / self.model_evaluation_config.TOTAL
+            ) * 100
             logger.info("Exited the test_net method of Model evaluation class")
             return accuracy
 
@@ -81,12 +103,18 @@ class ModelEvaluation:
             raise e
 
     def initiate_model_evaluation(self):
-        logger.info("Entered the initiate_model_evaluation method of Model evaluation class")
+        logger.info(
+            "Entered the initiate_model_evaluation method of Model evaluation class"
+        )
         try:
             self.configuration()
-            accuracy=self.test_net()
-            model_evaluation_artifact = ModelEvaluationArtifacts(model_accuracy=accuracy)
-            logger.info("Exited the initiate_model_evaluation method of Model evaluation class")
+            accuracy = self.test_net()
+            model_evaluation_artifact = ModelEvaluationArtifacts(
+                model_accuracy=accuracy
+            )
+            logger.info(
+                "Exited the initiate_model_evaluation method of Model evaluation class"
+            )
             return model_evaluation_artifact
 
         except Exception as e:

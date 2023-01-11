@@ -1,4 +1,7 @@
-env/
+.github/
+assignment/
+flowcharts/
+lung_xray_classifier.egg-info/
+notebook
 venv/
-README.md
 demo.py

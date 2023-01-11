@@ -10,65 +10,109 @@ class Net(nn.Module):
         super(Net, self).__init__()
         # Input Block
         self.convolution_block1 = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=8, kernel_size=(3, 3),
-                      padding=0, bias=True),
+            nn.Conv2d(
+                in_channels=3, out_channels=8, kernel_size=(3, 3), padding=0, bias=True
+            ),
             nn.ReLU(),
-            nn.BatchNorm2d(8)
+            nn.BatchNorm2d(8),
         )
         self.pooling11 = nn.MaxPool2d(2, 2)
         # CONVOLUTION BLOCK 1
         self.convolution_block2 = nn.Sequential(
-            nn.Conv2d(in_channels=8, out_channels=20, kernel_size=(3, 3),
-                      padding=0, bias=True),
+            nn.Conv2d(
+                in_channels=8, out_channels=20, kernel_size=(3, 3), padding=0, bias=True
+            ),
             nn.ReLU(),
-            nn.BatchNorm2d(20)
+            nn.BatchNorm2d(20),
         )
         self.pooling22 = nn.MaxPool2d(2, 2)
         self.convolution_block3 = nn.Sequential(
-            nn.Conv2d(in_channels=20, out_channels=10, kernel_size=(1, 1), padding=0, bias=True),
+            nn.Conv2d(
+                in_channels=20,
+                out_channels=10,
+                kernel_size=(1, 1),
+                padding=0,
+                bias=True,
+            ),
             nn.ReLU(),
             nn.BatchNorm2d(10),
         )
         self.pooling33 = nn.MaxPool2d(2, 2)
         # CONVOLUTION BLOCK 2
         self.convolution_block4 = nn.Sequential(
-            nn.Conv2d(in_channels=10, out_channels=20, kernel_size=(3, 3), padding=0, bias=True),
+            nn.Conv2d(
+                in_channels=10,
+                out_channels=20,
+                kernel_size=(3, 3),
+                padding=0,
+                bias=True,
+            ),
             nn.ReLU(),
-            nn.BatchNorm2d(20)
+            nn.BatchNorm2d(20),
         )
         self.convolution_block5 = nn.Sequential(
-            nn.Conv2d(in_channels=20, out_channels=32, kernel_size=(1, 1), padding=0, bias=True),
+            nn.Conv2d(
+                in_channels=20,
+                out_channels=32,
+                kernel_size=(1, 1),
+                padding=0,
+                bias=True,
+            ),
             nn.ReLU(),
             nn.BatchNorm2d(32),
         )
 
         self.convolution_block6 = nn.Sequential(
-            nn.Conv2d(in_channels=32, out_channels=10, kernel_size=(3, 3), padding=0, bias=True),
+            nn.Conv2d(
+                in_channels=32,
+                out_channels=10,
+                kernel_size=(3, 3),
+                padding=0,
+                bias=True,
+            ),
             nn.ReLU(),
-            nn.BatchNorm2d(10)
+            nn.BatchNorm2d(10),
         )
 
         self.convolution_block7 = nn.Sequential(
-            nn.Conv2d(in_channels=10, out_channels=10, kernel_size=(1, 1), padding=0, bias=True),
+            nn.Conv2d(
+                in_channels=10,
+                out_channels=10,
+                kernel_size=(1, 1),
+                padding=0,
+                bias=True,
+            ),
             nn.ReLU(),
-            nn.BatchNorm2d(10)
+            nn.BatchNorm2d(10),
         )
         self.convolution_block8 = nn.Sequential(
-            nn.Conv2d(in_channels=10, out_channels=14, kernel_size=(3, 3), padding=0, bias=True),
+            nn.Conv2d(
+                in_channels=10,
+                out_channels=14,
+                kernel_size=(3, 3),
+                padding=0,
+                bias=True,
+            ),
             nn.ReLU(),
-            nn.BatchNorm2d(14)
+            nn.BatchNorm2d(14),
         )
         self.convolution_block9 = nn.Sequential(
-            nn.Conv2d(in_channels=14, out_channels=16, kernel_size=(3, 3), padding=0, bias=True),
+            nn.Conv2d(
+                in_channels=14,
+                out_channels=16,
+                kernel_size=(3, 3),
+                padding=0,
+                bias=True,
+            ),
             nn.ReLU(),
-            nn.BatchNorm2d(16)
+            nn.BatchNorm2d(16),
         )
         # OUTPUT BLOCK
-        self.gap = nn.Sequential(
-            nn.AvgPool2d(kernel_size=4)
-        )
+        self.gap = nn.Sequential(nn.AvgPool2d(kernel_size=4))
         self.convolution_block_out = nn.Sequential(
-              nn.Conv2d(in_channels=16, out_channels=2, kernel_size=(4, 4), padding=0, bias=True),
+            nn.Conv2d(
+                in_channels=16, out_channels=2, kernel_size=(4, 4), padding=0, bias=True
+            ),
         )
 
     def forward(self, x) -> float:

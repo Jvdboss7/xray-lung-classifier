@@ -60,8 +60,3 @@ class MainUtils:
         image = Image.open(io.BytesIO(image_bytes))
 
         return my_transforms(image).unsqueeze(0)
-
-
-
-
-
