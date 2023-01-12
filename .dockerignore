@@ -1,6 +1,10 @@
 .github/
+artifacts/
 assignment/
+data/
 flowcharts/
+logs/
 notebook/
 venv/
 demo.py
+README.md

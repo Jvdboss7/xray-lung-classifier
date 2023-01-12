@@ -1,36 +1,27 @@
-import os
-import shutil
 import sys
-from zipfile import Path, ZipFile
-
-import numpy as np
-from xray.logger import logging
 
 from xray.cloud_storage.s3_operations import S3Operation
 from xray.constant.training_pipeline import *
-from xray.entity.artifacts_entity import DataIngestionArtifacts
+from xray.entity.artifacts_entity import DataIngestionArtifact
 from xray.entity.config_entity import DataIngestionConfig
 from xray.exception import XRayException
+from xray.logger import logging
 
 
 class DataIngestion:
     def __init__(self, data_ingestion_config: DataIngestionConfig):
         self.data_ingestion_config = data_ingestion_config
 
-        self.s3_operations = S3Operation()
+        self.s3 = S3Operation()
 
     def get_data_from_s3(self) -> None:
         try:
             logging.info("Entered the get_data_from_s3 method of Data ingestion class")
 
-            os.makedirs(
-                self.data_ingestion_config.DATA_INGESTION_ARTIFACTS_DIR, exist_ok=True
-            )
-
-            self.s3_operations.read_data_from_s3(
-                self.data_ingestion_config.ZIP_FILE_NAME,
-                self.data_ingestion_config.BUCKET_NAME,
-                self.data_ingestion_config.ZIP_FILE_PATH,
+            self.s3.sync_folder_from_s3(
+                folder=self.data_ingestion_config.data_path,
+                bucket_name=self.data_ingestion_config.bucket_name,
+                bucket_folder_name=self.data_ingestion_config.s3_data_folder,
             )
 
             logging.info("Exited the get_data_from_s3 method of Data ingestion class")
@@ -38,126 +29,17 @@ class DataIngestion:
         except Exception as e:
             raise XRayException(e, sys)
 
-    def unzip_and_clean(self) -> None:
-        logging.info("Entered the unzip_and_clean method of Data ingestion class")
-
-        try:
-            with ZipFile(self.data_ingestion_config.ZIP_FILE_PATH, "r") as zip_ref:
-                zip_ref.extractall(self.data_ingestion_config.ZIP_FILE_DIR)
-
-            logging.info("Exited the unzip_and_clean method of Data ingestion class")
-
-        except Exception as e:
-            raise XRayException(e, sys)
-
-    def train_test_split(self) -> Path:
-        """
-        This function would split the raw data into train and test folder
-        """
-        logging.info("Entered the train_test_split method of Data ingestion class")
-        try:
-            unzipped_images = self.data_ingestion_config.UNZIPPED_FILE_PATH
-
-            os.makedirs(
-                self.data_ingestion_config.TRAIN_DATA_ARTIFACT_DIR, exist_ok=True
-            )
-
-            os.makedirs(
-                self.data_ingestion_config.TEST_DATA_ARTIFACT_DIR, exist_ok=True
-            )
-
-            logging.info(
-                "Created train data artifacts and test data artifacts directories"
-            )
-
-            test_ratio = self.data_ingestion_config.PARAMS_TEST_RATIO
-
-            classes_dir = [CLASS_LABEL_1, CLASS_LABEL_2]
-
-            for cls in classes_dir:
-                os.makedirs(
-                    os.path.join(
-                        self.data_ingestion_config.TRAIN_DATA_ARTIFACT_DIR, cls
-                    ),
-                    exist_ok=True,
-                )
-
-                os.makedirs(
-                    os.path.join(
-                        self.data_ingestion_config.TEST_DATA_ARTIFACT_DIR, cls
-                    ),
-                    exist_ok=True,
-                )
-
-                logging.info(
-                    "Created train data artifacts and test data artifacts directories with class"
-                )
-
-            raw_data_path = os.path.join(unzipped_images)
-
-            for cls in classes_dir:
-                all_file_names = os.listdir(os.path.join(raw_data_path, cls))
-
-                np.random.shuffle(all_file_names)
-
-                train_file_name, test_file_name = np.split(
-                    np.array(all_file_names),
-                    [int(len(all_file_names) * (1 - test_ratio))],
-                )
-
-                train_names = [
-                    os.path.join(raw_data_path, cls, name)
-                    for name in train_file_name.tolist()
-                ]
-
-                test_names = [
-                    os.path.join(raw_data_path, cls, name)
-                    for name in test_file_name.tolist()
-                ]
-
-                for name in train_names:
-                    shutil.copy(
-                        name,
-                        os.path.join(
-                            self.data_ingestion_config.TRAIN_DATA_ARTIFACT_DIR, cls
-                        ),
-                    )
-
-                for name in test_names:
-                    shutil.copy(
-                        name,
-                        os.path.join(
-                            self.data_ingestion_config.TEST_DATA_ARTIFACT_DIR, cls
-                        ),
-                    )
-
-            shutil.rmtree(
-                self.data_ingestion_config.UNZIPPED_FILE_PATH, ignore_errors=True
-            )
-
-            logging.info("Exited the train_test_split method of Data ingestion class")
-
-            return (
-                self.data_ingestion_config.TRAIN_DATA_ARTIFACT_DIR,
-                self.data_ingestion_config.TEST_DATA_ARTIFACT_DIR,
-            )
-
-        except Exception as e:
-            raise XRayException(e, sys)
-
-    def initiate_data_ingestion(self) -> DataIngestionArtifacts:
+    def initiate_data_ingestion(self) -> DataIngestionArtifact:
         logging.info(
             "Entered the initiate_data_ingestion method of Data ingestion class"
         )
+
         try:
             self.get_data_from_s3()
 
-            self.unzip_and_clean()
-
-            train_file_path, test_file_path = self.train_test_split()
-
-            data_ingestion_artifact = DataIngestionArtifacts(
-                train_file_path=train_file_path, test_file_path=test_file_path
+            data_ingestion_artifact: DataIngestionArtifact = DataIngestionArtifact(
+                train_file_path=self.data_ingestion_config.train_data_path,
+                test_file_path=self.data_ingestion_config.test_data_path,
             )
 
             logging.info(

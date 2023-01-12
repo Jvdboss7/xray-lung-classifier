@@ -1,177 +1,206 @@
 import os
+import sys
 
 import torch
 import torch.nn.functional as F
-from torch.optim.lr_scheduler import StepLR
+from torch.nn import Module
+from torch.optim import Optimizer
+from torch.optim.lr_scheduler import StepLR, _LRScheduler
 from tqdm import tqdm
 
 from xray.constant.training_pipeline import *
 from xray.entity.artifacts_entity import (
-    DataTransformationArtifacts,
-    ModelTrainerArtifacts,
+    DataTransformationArtifact,
+    ModelTrainerArtifact,
 )
 from xray.entity.config_entity import ModelTrainerConfig
+from xray.exception import XRayException
 from xray.logger import logging
+from xray.ml.model.arch import Net
 
 
 class ModelTrainer:
     def __init__(
         self,
-        model,
-        data_transformation_artifact: DataTransformationArtifacts,
-        model_trainer_config=ModelTrainerConfig,
+        data_transformation_artifact: DataTransformationArtifact,
+        model_trainer_config: ModelTrainerConfig,
     ):
-        self.model_trainer_config = model_trainer_config
+        self.model_trainer_config: ModelTrainerConfig = model_trainer_config
 
-        self.data_transformation_artifact = data_transformation_artifact
+        self.data_transformation_artifact: DataTransformationArtifact = (
+            data_transformation_artifact
+        )
 
-        self.model = model
+        self.model: Module = Net()
 
-        self.device = DEVICE
+    def train(self, optimizer: Optimizer) -> None:
+        try:
+            """
+            Description: To train the model
 
-    def train(
-        self,
-    ) -> None:
-        """
-        Description: To train the model
+            input: model,device,train_loader,optimizer,epoch
 
-        input: model,device,train_loader,optimizer,epoch
+            output: loss, batch id and accuracy
+            """
+            logging.info("Entered the train method of Model trainer class")
 
-        output: loss, batch id and accuracy
-        """
-        logging.info("Entered the train method of Model trainer class")
+            self.model.train()
 
-        self.model.train()
+            pbar = tqdm(self.data_transformation_artifact.transformed_train_object)
 
-        pbar = tqdm(self.data_transformation_artifact.transformed_train_object)
+            correct: int = 0
 
-        correct = 0
+            processed = 0
 
-        processed = 0
+            for batch_idx, (data, target) in enumerate(pbar):
+                data, target = data.to(DEVICE), target.to(DEVICE)
 
-        for batch_idx, (data, target) in enumerate(pbar):
-            # get data
-            data, target = data.to(self.device), target.to(self.device)
+                # Initialization of gradient
+                optimizer.zero_grad()
 
-            # Initialization of gradient
-            self.model_trainer_config.OPTIMIZER.zero_grad()
+                # In PyTorch, gradient is accumulated over backprop and even though thats used in RNN generally not used in CNN
+                # or specific requirements
+                ## prediction on data
 
-            # In PyTorch, gradient is accumulated over backprop and even though thats used in RNN generally not used in CNN
-            # or specific requirements
-            ## prediction on data
+                y_pred = self.model(data)
 
-            y_pred = self.model(data)
+                # Calculating loss given the prediction
+                loss = F.nll_loss(y_pred, target)
 
-            # Calculating loss given the prediction
-            loss = F.nll_loss(y_pred, target)
+                # Backprop
+                loss.backward()
 
-            # Backprop
-            loss.backward()
+                optimizer.step()
 
-            self.model_trainer_config.OPTIMIZER.step()
-
-            # get the index of the log-probability corresponding to the max value
-            pred = y_pred.argmax(dim=1, keepdim=True)
-
-            correct += pred.eq(target.view_as(pred)).sum().item()
-
-            processed += len(data)
-
-            pbar.set_description(
-                desc=f"Loss={loss.item()} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}"
-            )
-
-        logging.info("Exited the train method of Model trainer class")
-
-    def test(
-        self,
-    ) -> None:
-        """
-        Description: To test the model
-
-        input: model, self.device, test_loader
-
-        output: average loss and accuracy
-
-        """
-        logging.info("Entered the test method of Model trainer class")
-
-        self.model.eval()
-
-        test_loss = 0
-
-        correct = 0
-
-        with torch.no_grad():
-            for (
-                data,
-                target,
-            ) in self.data_transformation_artifact.transformed_test_object:
-                data, target = data.to(self.device), target.to(self.device)
-
-                output = self.model(data)
-
-                test_loss += F.nll_loss(output, target, reduction="sum").item()
-
-                pred = output.argmax(dim=1, keepdim=True)
+                # get the index of the log-probability corresponding to the max value
+                pred = y_pred.argmax(dim=1, keepdim=True)
 
                 correct += pred.eq(target.view_as(pred)).sum().item()
 
-        test_loss /= len(
-            self.data_transformation_artifact.transformed_test_object.dataset
-        )
+                processed += len(data)
 
-        print(
-            "\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n".format(
-                test_loss,
-                correct,
-                len(self.data_transformation_artifact.transformed_test_object.dataset),
-                100.0
-                * correct
-                / len(
-                    self.data_transformation_artifact.transformed_test_object.dataset
-                ),
+                pbar.set_description(
+                    desc=f"Loss={loss.item()} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}"
+                )
+
+            logging.info("Exited the train method of Model trainer class")
+
+        except Exception as e:
+            raise XRayException(e, sys)
+
+    def test(self, epoch: int) -> None:
+        try:
+            """
+            Description: To test the model
+
+            input: model, DEVICE, test_loader
+
+            output: average loss and accuracy
+
+            """
+            logging.info("Entered the test method of Model trainer class")
+
+            self.model.eval()
+
+            test_loss: float = 0.0
+
+            correct: int = 0
+
+            with torch.no_grad():
+                for (
+                    data,
+                    target,
+                ) in self.data_transformation_artifact.transformed_test_object:
+                    data, target = data.to(DEVICE), target.to(DEVICE)
+
+                    output = self.model(data)
+
+                    test_loss += F.nll_loss(output, target, reduction="sum").item()
+
+                    pred = output.argmax(dim=1, keepdim=True)
+
+                    correct += pred.eq(target.view_as(pred)).sum().item()
+
+            test_loss /= len(
+                self.data_transformation_artifact.transformed_test_object.dataset
             )
-        )
 
-        logging.info("Exited the test method of Model trainer class")
+            print(
+                "\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)".format(
+                    test_loss,
+                    correct,
+                    len(
+                        self.data_transformation_artifact.transformed_test_object.dataset
+                    ),
+                    100.0
+                    * correct
+                    / len(
+                        self.data_transformation_artifact.transformed_test_object.dataset
+                    ),
+                )
+            )
 
-    def initiate_model_trainer(self) -> ModelTrainerArtifacts:
-        logging.info("Entered the initiate_model_trainer method of Model trainer class")
+            logging.info(
+                "Epoch : {} , Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)".format(
+                    epoch,
+                    test_loss,
+                    correct,
+                    len(
+                        self.data_transformation_artifact.transformed_test_object.dataset
+                    ),
+                    100.0
+                    * correct
+                    / len(
+                        self.data_transformation_artifact.transformed_test_object.dataset
+                    ),
+                )
+            )
 
-        # Defining the params for training
-        print(self.model)
+            logging.info("Exited the test method of Model trainer class")
 
-        model = self.model_trainer_config.MODEL.to(self.model_trainer_config.DEVICE)
+        except Exception as e:
+            raise XRayException(e, sys)
 
-        # optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.8)
-        scheduler = StepLR(
-            optimizer=self.model_trainer_config.OPTIMIZER,
-            step_size=self.model_trainer_config.STEP_SIZE,
-            gamma=self.model_trainer_config.GAMMA,
-        )
+    def initiate_model_trainer(self) -> ModelTrainerArtifact:
+        try:
+            logging.info(
+                "Entered the initiate_model_trainer method of Model trainer class"
+            )
 
-        # EPOCHS = 4
-        # Training the model
-        for epoch in range(self.model_trainer_config.EPOCH):
-            print("EPOCH:", epoch)
+            model: Module = self.model.to(self.model_trainer_config.device)
 
-            self.train()
+            optimizer: Optimizer = torch.optim.SGD(
+                model.parameters(), **self.model_trainer_config.optimizer_params
+            )
 
-            scheduler.step()
+            scheduler: _LRScheduler = StepLR(
+                optimizer=optimizer, **self.model_trainer_config.scheduler_params
+            )
 
-            # print('current Learning Rate: ', self.optimizer.state_dict()["param_groups"][0]["lr"])
-            self.test()
+            for epoch in range(1, self.model_trainer_config.epochs + 1):
+                print("Epoch : ", epoch)
 
-        # print(model.state_dict())
-        os.makedirs(self.model_trainer_config.TRAINED_MODEL_DIR, exist_ok=True)
+                self.train(optimizer=optimizer)
 
-        torch.save(model.state_dict(), self.model_trainer_config.TRAINED_MODEL_PATH)
+                optimizer.step()
 
-        model_trainer_artifact = ModelTrainerArtifacts(
-            trained_model_path=self.model_trainer_config.TRAINED_MODEL_PATH
-        )
+                scheduler.step()
 
-        logging.info("exited the initiate_model_trainer method of Model trainer class")
+                self.test(epoch)
 
-        return model_trainer_artifact
+            os.makedirs(self.model_trainer_config.artifact_dir, exist_ok=True)
+
+            torch.save(model, self.model_trainer_config.trained_model_path)
+
+            model_trainer_artifact: ModelTrainerArtifact = ModelTrainerArtifact(
+                trained_model_path=self.model_trainer_config.trained_model_path
+            )
+
+            logging.info(
+                "Exited the initiate_model_trainer method of Model trainer class"
+            )
+
+            return model_trainer_artifact
+
+        except Exception as e:
+            raise XRayException(e, sys)

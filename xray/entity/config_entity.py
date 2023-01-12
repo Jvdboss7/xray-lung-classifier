@@ -1,64 +1,38 @@
-from dataclasses import dataclass
-from from_root import from_root
-from torch.types import Device
-from xray.constant.training_pipeline import *
 import os
+from dataclasses import dataclass
+
+from from_root import from_root
+
+from xray.constant.training_pipeline import *
 
 
 @dataclass
 class DataIngestionConfig:
     def __init__(self):
-        self.BUCKET_NAME: str = BUCKET_NAME
+        self.s3_data_folder: str = S3_DATA_FOLDER
 
-        self.ZIP_FILE_NAME: str = ZIP_FILE_NAME
+        self.bucket_name: str = BUCKET_NAME
 
-        self.DATA_INGESTION_ARTIFACTS_DIR: str = os.path.join(
-            from_root(), ARTIFACTS_DIR, DATA_INGESTION_ARTIFACTS_DIR
+        self.artifact_dir: str = os.path.join(ARTIFACT_DIR, TIMESTAMP)
+
+        self.data_path: str = os.path.join(
+            self.artifact_dir, "data_ingestion", self.s3_data_folder
         )
 
-        self.TRAIN_DATA_ARTIFACT_DIR = os.path.join(
-            self.DATA_INGESTION_ARTIFACTS_DIR, DATA_INGESTION_TRAIN_DIR
-        )
+        self.train_data_path: str = os.path.join(self.data_path, "train")
 
-        self.TEST_DATA_ARTIFACT_DIR = os.path.join(
-            self.DATA_INGESTION_ARTIFACTS_DIR, DATA_INGESTION_TEST_DIR
-        )
-
-        self.ZIP_FILE_DIR = os.path.join(self.DATA_INGESTION_ARTIFACTS_DIR)
-
-        self.ZIP_FILE_PATH = os.path.join(
-            self.DATA_INGESTION_ARTIFACTS_DIR, self.ZIP_FILE_NAME
-        )
-
-        self.UNZIPPED_FILE_PATH = os.path.join(
-            self.DATA_INGESTION_ARTIFACTS_DIR, RAW_FILE_NAME
-        )
-
-        self.PARAMS_TEST_RATIO: int = PARAMS_TEST_RATIO
+        self.test_data_path: str = os.path.join(self.data_path, "test")
 
 
 @dataclass
 class DataTransformationConfig:
     def __init__(self):
-        self.DATA_TRANSFORMATION_ARTIFACTS_DIR: str = os.path.join(
-            from_root(), ARTIFACTS_DIR, DATA_TRANSFORMATION_ARTIFACTS_DIR
-        )
-
-        self.TRAIN_TRANSFORM_DATA_ARTIFACT_DIR = os.path.join(
-            self.DATA_TRANSFORMATION_ARTIFACTS_DIR, DATA_TRANSFORMATION_TRAIN_DIR
-        )
-
-        self.TEST_TRANSFORM_DATA_ARTIFACT_DIR = os.path.join(
-            self.DATA_TRANSFORMATION_ARTIFACTS_DIR, DATA_TRANSFORMATION_TEST_DIR
-        )
-
-        self.BRIGHTNESS: float = BRIGHTNESS
-
-        self.CONTRAST: float = CONTRAST
-
-        self.SATURATION: float = SATURATION
-
-        self.HUE: float = HUE
+        self.color_jitter_transforms = {
+            "brightness": BRIGHTNESS,
+            "contrast": CONTRAST,
+            "saturation": SATURATION,
+            "hue": HUE,
+        }
 
         self.RESIZE: int = RESIZE
 
@@ -66,55 +40,45 @@ class DataTransformationConfig:
 
         self.RANDOMROTATION: int = RANDOMROTATION
 
-        self.NORMALIZE_LIST_1: list = NORMALIZE_LIST_1
+        self.normalize_transforms = {"mean": NORMALIZE_LIST_1, "std": NORMALIZE_LIST_2}
 
-        self.NORMALIZE_LIST_2: list = NORMALIZE_LIST_2
-
-        self.BATCH_SIZE: int = BATCH_SIZE
-
-        self.SHUFFLE: bool = SHUFFLE
-
-        self.PIN_MEMORY: bool = PIN_MEMORY
+        self.data_loader_params: dict = {
+            "batch_size": BATCH_SIZE,
+            "shuffle": SHUFFLE,
+            "pin_memory": PIN_MEMORY,
+        }
 
 
 @dataclass
 class ModelTrainerConfig:
     def __init__(self):
-        self.TRAINED_MODEL_DIR: str = os.path.join(
-            from_root(), ARTIFACTS_DIR, TRAINED_MODEL_DIR
-        )
+        self.artifact_dir = os.path.join(ARTIFACT_DIR, TIMESTAMP, "model_training")
 
-        self.TRAINED_MODEL_PATH = os.path.join(
-            self.TRAINED_MODEL_DIR, TRAINED_MODEL_NAME
-        )
+        self.trained_model_path = os.path.join(self.artifact_dir, TRAINED_MODEL_NAME)
 
-        self.PARAMS_EPOCHS: int = PARAMS_EPOCHS
+        self.epochs: int = EPOCH
 
-        self.STEP_SIZE: int = STEP_SIZE
+        self.optimizer_params: dict = {"lr": 0.01, "momentum": 0.8}
 
-        self.GAMMA: int = GAMMA
+        self.scheduler_params: dict = {"step_size": STEP_SIZE, "gamma": GAMMA}
 
-        self.EPOCH: int = EPOCH
-
-        self.MODEL: str = MODEL
-
-        self.OPTIMIZER = OPTIMIZER
-
-        self.DEVICE = DEVICE
+        self.device = DEVICE
 
 
 @dataclass
 class ModelEvaluationConfig:
     def __init__(self):
-        self.DEVICE = DEVICE
+        self.device = DEVICE
 
-        self.TEST_LOSS: int = 0
+        self.test_loss: int = 0
 
-        self.TEST_ACCURACY: int = 0
+        self.test_accuracy: int = 0
 
-        self.TOTAL: int = 0
+        self.total: int = 0
 
-        self.TOTAL_BATCH: int = 0
+        self.total_batch: int = 0
+
+        self.optimizer_params: dict = {"lr": 0.01, "momentum": 0.8}
 
 
 # Model Pusher Configurations
@@ -122,7 +86,7 @@ class ModelEvaluationConfig:
 class ModelPusherConfig:
     def __init__(self):
         self.TRAINED_MODEL_DIR: str = os.path.join(
-            from_root(), ARTIFACTS_DIR, TRAINED_MODEL_DIR
+            from_root(), ARTIFACT_DIR, TRAINED_MODEL_DIR
         )
 
         self.BEST_MODEL_PATH: str = os.path.join(

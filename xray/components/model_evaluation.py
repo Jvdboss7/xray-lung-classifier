@@ -1,66 +1,65 @@
 import sys
+from typing import Tuple
 
 import torch
-from torch.nn import CrossEntropyLoss
-from torch.optim import SGD
+from torch.nn import CrossEntropyLoss, Module
+from torch.optim import SGD, Optimizer
+from torch.utils.data import DataLoader
 
-from xray.components.data_transformation import DataTransformation
 from xray.entity.artifacts_entity import (
-    DataIngestionArtifacts,
-    DataTransformationArtifacts,
-    ModelEvaluationArtifacts,
-    ModelTrainerArtifacts,
+    DataTransformationArtifact,
+    ModelEvaluationArtifact,
+    ModelTrainerArtifact,
 )
-from xray.entity.config_entity import DataTransformationConfig, ModelEvaluationConfig
+from xray.entity.config_entity import ModelEvaluationConfig
 from xray.exception import XRayException
-from xray.ml.model import arch
 from xray.logger import logging
+from xray.ml.model.arch import Net
 
 
 class ModelEvaluation:
     def __init__(
         self,
-        data_ingestion_artifact: DataIngestionArtifacts,
-        data_transformation_artifact: DataTransformationArtifacts,
+        data_transformation_artifact: DataTransformationArtifact,
         model_evaluation_config: ModelEvaluationConfig,
-        model_trainer_artifact: ModelTrainerArtifacts,
+        model_trainer_artifact: ModelTrainerArtifact,
     ):
 
-        self.data_ingestion_artifact = data_ingestion_artifact
         self.data_transformation_artifact = data_transformation_artifact
+
         self.model_evaluation_config = model_evaluation_config
+
         self.model_trainer_artifact = model_trainer_artifact
 
-        self.data_transformation = DataTransformation(
-            data_transformation_config=DataTransformationConfig(),
-            data_ingestion_artifact=self.data_ingestion_artifact,
-        )
-
-    def configuration(self):
+    def configuration(self) -> Tuple[DataLoader, Module, float, Optimizer]:
         logging.info("Entered the configuration method of Model evaluation class")
 
         try:
-            train_Dataloader, test_DataLoader = self.data_transformation.data_loader()
+            test_dataloader: DataLoader = (
+                self.data_transformation_artifact.transformed_test_object
+            )
 
-            print(test_DataLoader)
+            model: Module = Net()
 
-            model = arch.Net()
+            # model.load_state_dict(
+            #     torch.load(self.model_trainer_artifact.trained_model_path)
+            # )
 
-            load_model_path = self.model_trainer_artifact.trained_model_path
+            model = torch.load(self.model_trainer_artifact.trained_model_path)
 
-            model.load_state_dict(torch.load(load_model_path))
+            model.to(self.model_evaluation_config.device)
 
-            model.to(self.model_evaluation_config.DEVICE)
+            cost: Module = CrossEntropyLoss()
 
-            cost = CrossEntropyLoss()
-
-            optimizer = SGD(model.parameters(), lr=0.01, momentum=0.8)
+            optimizer: Optimizer = SGD(
+                model.parameters(), **self.model_evaluation_config.optimizer_params
+            )
 
             model.eval()
 
             logging.info("Exited the configuration method of Model evaluation class")
 
-            return test_DataLoader, model, cost, optimizer
+            return test_dataloader, model, cost, optimizer
 
         except Exception as e:
             raise XRayException(e, sys)
@@ -69,14 +68,15 @@ class ModelEvaluation:
         logging.info("Entered the test_net method of Model evaluation class")
 
         try:
-            test_DataLoader, net, cost, optimizer = self.configuration()
+            test_dataloader, net, cost, _ = self.configuration()
 
             with torch.no_grad():
                 holder = []
-                for batch, data in enumerate(test_DataLoader):
-                    images = data[0].to(self.model_evaluation_config.DEVICE)
 
-                    labels = data[1].to(self.model_evaluation_config.DEVICE)
+                for _, data in enumerate(test_dataloader):
+                    images = data[0].to(self.model_evaluation_config.device)
+
+                    labels = data[1].to(self.model_evaluation_config.device)
 
                     output = net(images)
 
@@ -90,26 +90,26 @@ class ModelEvaluation:
                         holder.append(h)
 
                     print(
-                        f"Actual_Labels : {labels}     Predictions : {predictions}     labels : {loss.item():.4f}",
+                        f"Actual_Labels : {labels}     Predictions : {predictions}     labels : {loss.item():.4f}"
                     )
 
-                    self.model_evaluation_config.TEST_LOSS += loss.item()
+                    self.model_evaluation_config.test_loss += loss.item()
 
-                    self.model_evaluation_config.TEST_ACCURACY += (
+                    self.model_evaluation_config.test_accuracy += (
                         (predictions == labels).sum().item()
                     )
 
-                    self.model_evaluation_config.TOTAL_BATCH += 1
+                    self.model_evaluation_config.total_batch += 1
 
-                    self.model_evaluation_config.TOTAL += labels.size(0)
+                    self.model_evaluation_config.total += labels.size(0)
 
                     print(
-                        f"Model  -->   Loss : {self.model_evaluation_config.TEST_LOSS/ self.model_evaluation_config.TOTAL_BATCH} Accuracy : {(self.model_evaluation_config.TEST_ACCURACY / self.model_evaluation_config.TOTAL) * 100} %"
+                        f"Model  -->   Loss : {self.model_evaluation_config.test_loss/ self.model_evaluation_config.total_batch} Accuracy : {(self.model_evaluation_config.test_accuracy / self.model_evaluation_config.total) * 100} %"
                     )
 
             accuracy = (
-                self.model_evaluation_config.TEST_ACCURACY
-                / self.model_evaluation_config.TOTAL
+                self.model_evaluation_config.test_accuracy
+                / self.model_evaluation_config.total
             ) * 100
 
             logging.info("Exited the test_net method of Model evaluation class")
@@ -117,20 +117,18 @@ class ModelEvaluation:
             return accuracy
 
         except Exception as e:
-            raise e
+            raise XRayException(e, sys)
 
-    def initiate_model_evaluation(self):
+    def initiate_model_evaluation(self) -> ModelEvaluationArtifact:
         logging.info(
             "Entered the initiate_model_evaluation method of Model evaluation class"
         )
 
         try:
-            self.configuration()
-
             accuracy = self.test_net()
 
-            model_evaluation_artifact = ModelEvaluationArtifacts(
-                model_accuracy=accuracy
+            model_evaluation_artifact: ModelEvaluationArtifact = (
+                ModelEvaluationArtifact(model_accuracy=accuracy)
             )
 
             logging.info(

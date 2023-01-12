@@ -1,5 +1,4 @@
 import io
-
 import os
 import sys
 
@@ -10,9 +9,8 @@ from torchvision import transforms
 from xray.cloud_storage.s3_operations import S3Operation
 from xray.constant.training_pipeline import *
 from xray.exception import XRayException
-from xray.ml.model import arch
-
 from xray.logger import logging
+from xray.ml.model.arch import Net
 
 
 class PredictionPipeline:
@@ -79,6 +77,7 @@ class PredictionPipeline:
         Output      :   Predictions
         """
         logging.info("Entered the get_model_from_s3 method of PredictionPipeline class")
+
         try:
             os.makedirs("artifacts/PredictModel", exist_ok=True)
 
@@ -103,7 +102,7 @@ class PredictionPipeline:
         logging.info("Entered the prediction method of PredictionPipeline class")
 
         try:
-            model = arch.Net()
+            model = Net()
 
             model.load_state_dict(torch.load(best_model_path, map_location="cpu"))
 
