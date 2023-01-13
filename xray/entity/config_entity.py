@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass
 
-from from_root import from_root
+from torch import device
 
 from xray.constant.training_pipeline import *
 
@@ -27,7 +27,7 @@ class DataIngestionConfig:
 @dataclass
 class DataTransformationConfig:
     def __init__(self):
-        self.color_jitter_transforms = {
+        self.color_jitter_transforms: dict = {
             "brightness": BRIGHTNESS,
             "contrast": CONTRAST,
             "saturation": SATURATION,
@@ -40,7 +40,10 @@ class DataTransformationConfig:
 
         self.RANDOMROTATION: int = RANDOMROTATION
 
-        self.normalize_transforms = {"mean": NORMALIZE_LIST_1, "std": NORMALIZE_LIST_2}
+        self.normalize_transforms: dict = {
+            "mean": NORMALIZE_LIST_1,
+            "std": NORMALIZE_LIST_2,
+        }
 
         self.data_loader_params: dict = {
             "batch_size": BATCH_SIZE,
@@ -48,13 +51,29 @@ class DataTransformationConfig:
             "pin_memory": PIN_MEMORY,
         }
 
+        self.artifact_dir: str = os.path.join(
+            ARTIFACT_DIR, TIMESTAMP, "data_transformation"
+        )
+
+        self.train_transforms_file: str = os.path.join(
+            self.artifact_dir, TRAIN_TRANSFORMS_FILE
+        )
+
+        self.test_transforms_file: str = os.path.join(
+            self.artifact_dir, TEST_TRANSFORMS_FILE
+        )
+
 
 @dataclass
 class ModelTrainerConfig:
     def __init__(self):
-        self.artifact_dir = os.path.join(ARTIFACT_DIR, TIMESTAMP, "model_training")
+        self.artifact_dir: int = os.path.join(ARTIFACT_DIR, TIMESTAMP, "model_training")
 
-        self.trained_model_path = os.path.join(self.artifact_dir, TRAINED_MODEL_NAME)
+        self.trained_bentoml_model_name = "xray_model"
+
+        self.trained_model_path: int = os.path.join(
+            self.artifact_dir, TRAINED_MODEL_NAME
+        )
 
         self.epochs: int = EPOCH
 
@@ -62,13 +81,13 @@ class ModelTrainerConfig:
 
         self.scheduler_params: dict = {"step_size": STEP_SIZE, "gamma": GAMMA}
 
-        self.device = DEVICE
+        self.device: device = DEVICE
 
 
 @dataclass
 class ModelEvaluationConfig:
     def __init__(self):
-        self.device = DEVICE
+        self.device: device = DEVICE
 
         self.test_loss: int = 0
 
@@ -85,9 +104,7 @@ class ModelEvaluationConfig:
 @dataclass
 class ModelPusherConfig:
     def __init__(self):
-        self.TRAINED_MODEL_DIR: str = os.path.join(
-            from_root(), ARTIFACT_DIR, TRAINED_MODEL_DIR
-        )
+        self.TRAINED_MODEL_DIR: str = os.path.join(ARTIFACT_DIR, TRAINED_MODEL_DIR)
 
         self.BEST_MODEL_PATH: str = os.path.join(
             self.TRAINED_MODEL_DIR, TRAINED_MODEL_NAME

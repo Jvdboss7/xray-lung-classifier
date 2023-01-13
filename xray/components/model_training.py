@@ -17,7 +17,8 @@ from xray.entity.config_entity import ModelTrainerConfig
 from xray.exception import XRayException
 from xray.logger import logging
 from xray.ml.model.arch import Net
-
+import bentoml
+import joblib
 
 class ModelTrainer:
     def __init__(
@@ -34,16 +35,16 @@ class ModelTrainer:
         self.model: Module = Net()
 
     def train(self, optimizer: Optimizer) -> None:
+        """
+        Description: To train the model
+
+        input: model,device,train_loader,optimizer,epoch
+
+        output: loss, batch id and accuracy
+        """
+        logging.info("Entered the train method of Model trainer class")
+
         try:
-            """
-            Description: To train the model
-
-            input: model,device,train_loader,optimizer,epoch
-
-            output: loss, batch id and accuracy
-            """
-            logging.info("Entered the train method of Model trainer class")
-
             self.model.train()
 
             pbar = tqdm(self.data_transformation_artifact.transformed_train_object)
@@ -88,7 +89,7 @@ class ModelTrainer:
         except Exception as e:
             raise XRayException(e, sys)
 
-    def test(self, epoch: int) -> None:
+    def test(self) -> None:
         try:
             """
             Description: To test the model
@@ -121,28 +122,27 @@ class ModelTrainer:
 
                     correct += pred.eq(target.view_as(pred)).sum().item()
 
-            test_loss /= len(
-                self.data_transformation_artifact.transformed_test_object.dataset
-            )
-
-            print(
-                "\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)".format(
-                    test_loss,
-                    correct,
-                    len(
-                        self.data_transformation_artifact.transformed_test_object.dataset
-                    ),
-                    100.0
-                    * correct
-                    / len(
-                        self.data_transformation_artifact.transformed_test_object.dataset
-                    ),
+                test_loss /= len(
+                    self.data_transformation_artifact.transformed_test_object.dataset
                 )
-            )
+
+                print(
+                    "Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n".format(
+                        test_loss,
+                        correct,
+                        len(
+                            self.data_transformation_artifact.transformed_test_object.dataset
+                        ),
+                        100.0
+                        * correct
+                        / len(
+                            self.data_transformation_artifact.transformed_test_object.dataset
+                        ),
+                    )
+                )
 
             logging.info(
-                "Epoch : {} , Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)".format(
-                    epoch,
+                "Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)".format(
                     test_loss,
                     correct,
                     len(
@@ -186,11 +186,21 @@ class ModelTrainer:
 
                 scheduler.step()
 
-                self.test(epoch)
+                self.test()
 
             os.makedirs(self.model_trainer_config.artifact_dir, exist_ok=True)
 
             torch.save(model, self.model_trainer_config.trained_model_path)
+            
+            train_transforms_obj = joblib.load(self.data_transformation_artifact.train_transform_file_path)
+
+            bentoml.pytorch.save_model(
+                name=self.model_trainer_config.trained_bentoml_model_name,
+                model=model,
+                custom_objects={
+                    "xray_train_transforms": train_transforms_obj
+                },
+            )
 
             model_trainer_artifact: ModelTrainerArtifact = ModelTrainerArtifact(
                 trained_model_path=self.model_trainer_config.trained_model_path

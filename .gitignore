@@ -75,6 +75,7 @@ docs/_build/
 target/
 data
 test.py
+demo.py
 logs
 artifacts
 # Jupyter Notebook

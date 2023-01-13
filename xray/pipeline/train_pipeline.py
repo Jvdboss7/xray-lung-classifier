@@ -3,20 +3,18 @@ import sys
 from xray.components.data_ingestion import DataIngestion
 from xray.components.data_transformation import DataTransformation
 from xray.components.model_evaluation import ModelEvaluation
-from xray.components.model_pusher import ModelPusher
+
 from xray.components.model_training import ModelTrainer
 from xray.entity.artifacts_entity import (
     DataIngestionArtifact,
     DataTransformationArtifact,
     ModelEvaluationArtifact,
-    ModelPusherArtifact,
     ModelTrainerArtifact,
 )
 from xray.entity.config_entity import (
     DataIngestionConfig,
     DataTransformationConfig,
     ModelEvaluationConfig,
-    ModelPusherConfig,
     ModelTrainerConfig,
 )
 from xray.exception import XRayException

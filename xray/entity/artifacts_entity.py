@@ -15,6 +15,10 @@ class DataTransformationArtifact:
 
     transformed_test_object: DataLoader
 
+    train_transform_file_path: str
+
+    test_transform_file_path: str
+
 
 @dataclass
 class ModelTrainerArtifact:
@@ -29,4 +33,5 @@ class ModelEvaluationArtifact:
 @dataclass
 class ModelPusherArtifact:
     bucket_name: str
+
     s3_model_path: str

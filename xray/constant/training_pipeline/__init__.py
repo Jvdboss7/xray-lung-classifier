@@ -15,10 +15,6 @@ CLASS_LABEL_1 = "NORMAL"
 
 CLASS_LABEL_2 = "PNEUMONIA"
 
-DATA_INGESTION_TRAIN_DIR = "train"
-
-DATA_INGESTION_TEST_DIR = "test"
-
 BRIGHTNESS = 0.10
 
 CONTRAST = 0.1
@@ -37,6 +33,10 @@ NORMALIZE_LIST_1 = [0.485, 0.456, 0.406]
 
 NORMALIZE_LIST_2 = [0.229, 0.224, 0.225]
 
+TRAIN_TRANSFORMS_FILE = "train_transforms.pkl"
+
+TEST_TRANSFORMS_FILE = "test_transforms.pkl"
+
 BATCH_SIZE = 2
 
 SHUFFLE = False
@@ -54,7 +54,9 @@ STEP_SIZE = 6
 
 GAMMA = 0.5
 
-EPOCH = 80
+EPOCH = 1
+
+EXP_NAME = "lung_xray"
 
 # Prediction Constants
 PREDICTION_LABEL = {"0": CLASS_LABEL_1, "1": CLASS_LABEL_2}

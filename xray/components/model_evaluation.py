@@ -41,11 +41,7 @@ class ModelEvaluation:
 
             model: Module = Net()
 
-            # model.load_state_dict(
-            #     torch.load(self.model_trainer_artifact.trained_model_path)
-            # )
-
-            model = torch.load(self.model_trainer_artifact.trained_model_path)
+            model: Module = torch.load(self.model_trainer_artifact.trained_model_path)
 
             model.to(self.model_evaluation_config.device)
 
@@ -93,6 +89,10 @@ class ModelEvaluation:
                         f"Actual_Labels : {labels}     Predictions : {predictions}     labels : {loss.item():.4f}"
                     )
 
+                    logging.info(
+                        f"Actual_Labels : {labels}     Predictions : {predictions}     labels : {loss.item():.4f}"
+                    )
+
                     self.model_evaluation_config.test_loss += loss.item()
 
                     self.model_evaluation_config.test_accuracy += (
@@ -104,6 +104,10 @@ class ModelEvaluation:
                     self.model_evaluation_config.total += labels.size(0)
 
                     print(
+                        f"Model  -->   Loss : {self.model_evaluation_config.test_loss/ self.model_evaluation_config.total_batch} Accuracy : {(self.model_evaluation_config.test_accuracy / self.model_evaluation_config.total) * 100} %"
+                    )
+
+                    logging.info(
                         f"Model  -->   Loss : {self.model_evaluation_config.test_loss/ self.model_evaluation_config.total_batch} Accuracy : {(self.model_evaluation_config.test_accuracy / self.model_evaluation_config.total) * 100} %"
                     )
 
