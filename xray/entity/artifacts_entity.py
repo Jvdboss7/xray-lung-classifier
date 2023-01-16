@@ -1,29 +1,37 @@
 from dataclasses import dataclass
+from torch.utils.data.dataloader import DataLoader
 
-# Data ingestion artifacts
+
 @dataclass
-class DataIngestionArtifacts:
-    train_file_path: str 
+class DataIngestionArtifact:
+    train_file_path: str
+
     test_file_path: str
 
-# Data Transformation artifacts
-@dataclass
-class DataTransformationArtifacts:
-    transformed_train_object: str 
-    transformed_test_object: str
 
-# Model Trainer artifacts
 @dataclass
-class ModelTrainerArtifacts:
+class DataTransformationArtifact:
+    transformed_train_object: DataLoader
+
+    transformed_test_object: DataLoader
+
+    train_transform_file_path: str
+
+    test_transform_file_path: str
+
+
+@dataclass
+class ModelTrainerArtifact:
     trained_model_path: str
 
-# Model evaluation artifacts
-@dataclass
-class ModelEvaluationArtifacts:
-    model_accuracy: int 
 
-# Model Pusher Artifacts
 @dataclass
-class ModelPusherArtifacts:
-    bucket_name: str
-    s3_model_path: str
+class ModelEvaluationArtifact:
+    model_accuracy: float
+
+
+@dataclass
+class ModelPusherArtifact:
+    bentoml_model_name: str
+
+    bentoml_service_name: str

@@ -1,83 +1,159 @@
 import os
-import sys 
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
-from xray.entity.config_entity import DataTransformationConfig
-from xray.entity.artifacts_entity import DataTransformationArtifacts, DataIngestionArtifacts
-from xray.exception import XrayException
-import logging
+import sys
+from typing import Tuple
 
-logger = logging.getLogger(__name__)
+import joblib
+from torch.utils.data import DataLoader, Dataset
+from torchvision import transforms
+from torchvision.datasets import ImageFolder
+
+from xray.entity.artifacts_entity import (
+    DataIngestionArtifact,
+    DataTransformationArtifact,
+)
+from xray.entity.config_entity import DataTransformationConfig
+from xray.exception import XRayException
+from xray.logger import logging
+
 
 class DataTransformation:
-    def __init__(self,data_transformation_config: DataTransformationConfig,data_ingestion_artifact: DataIngestionArtifacts):
+    def __init__(
+        self,
+        data_transformation_config: DataTransformationConfig,
+        data_ingestion_artifact: DataIngestionArtifact,
+    ):
         self.data_transformation_config = data_transformation_config
+
         self.data_ingestion_artifact = data_ingestion_artifact
 
-    def transforming_training_data(self):
-        logger.info("Entered the transforming_training_data method of Data transformation class")
-        train_transform = transforms.Compose([
-        transforms.Resize(self.data_transformation_config.RESIZE),
-        transforms.CenterCrop(self.data_transformation_config.CENTERCROP),
-        transforms.ColorJitter(brightness=self.data_transformation_config.BRIGHTNESS, contrast=self.data_transformation_config.CONTRAST,
-        saturation=self.data_transformation_config.SATURATION, hue=self.data_transformation_config.HUE),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(self.data_transformation_config.RANDOMROTATION),
-        transforms.ToTensor(),
-        transforms.Normalize(self.data_transformation_config.NORMALIZE_LIST_1,
-                                self.data_transformation_config.NORMALIZE_LIST_2)
-        ])
-        logger.info("Exited the transforming_training_data method of Data transformation class")
-        return train_transform
-                        
-    def transforming_testing_data(self):
-        logger.info("Entered the transforming_testing_data method of Data transformation class")
-        test_transform = transforms.Compose([
-        transforms.Resize(self.data_transformation_config.RESIZE),
-        transforms.CenterCrop(self.data_transformation_config.CENTERCROP),
-        transforms.ToTensor(),
-        transforms.Normalize(self.data_transformation_config.NORMALIZE_LIST_1,
-                            self.data_transformation_config.NORMALIZE_LIST_2)
-        ])
-        logger.info("Entered the transforming_testing_data method of Data transformation class")
-        return test_transform
+    def transforming_training_data(self) -> transforms.Compose:
+        try:
+            logging.info(
+                "Entered the transforming_training_data method of Data transformation class"
+            )
 
-    def data_loader(self):
-        logger.info("Entered the data_loader method of Data transformation class")
-        train_transform = self.transforming_training_data()
-        test_transform = self.transforming_testing_data()
+            train_transform: transforms.Compose = transforms.Compose(
+                [
+                    transforms.Resize(self.data_transformation_config.RESIZE),
+                    transforms.CenterCrop(self.data_transformation_config.CENTERCROP),
+                    transforms.ColorJitter(
+                        **self.data_transformation_config.color_jitter_transforms
+                    ),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.RandomRotation(
+                        self.data_transformation_config.RANDOMROTATION
+                    ),
+                    transforms.ToTensor(),
+                    transforms.Normalize(
+                        **self.data_transformation_config.normalize_transforms
+                    ),
+                ]
+            )
 
-        train_data = datasets.ImageFolder(os.path.join(self.data_ingestion_artifact.train_file_path), transform= train_transform)
-        test_data = datasets.ImageFolder(os.path.join(self.data_ingestion_artifact.test_file_path), transform= test_transform)
-        logger.info("Created train data and test data paths")
-        
-        train_loader = DataLoader(train_data,
-                                batch_size= self.data_transformation_config.BATCH_SIZE, shuffle= self.data_transformation_config.SHUFFLE, 
-                                pin_memory= self.data_transformation_config.PIN_MEMORY)
-        test_loader = DataLoader(test_data,
-                                batch_size=self.data_transformation_config.BATCH_SIZE , shuffle= self.data_transformation_config.SHUFFLE,
-                                pin_memory= self.data_transformation_config.PIN_MEMORY)
+            logging.info(
+                "Exited the transforming_training_data method of Data transformation class"
+            )
 
-        class_names = train_data.classes
-        
-        print(class_names)
-        print(f'Number of train images: {len(train_data)}')
-        print(f'Number of test images: {len(test_data)}')
-        print(train_loader)
+            return train_transform
 
-        logger.info("Exited the data_loader method of Data transformation class")
-        return train_loader, test_loader
-
-    def initiate_data_transformation(self) -> DataTransformationArtifacts:
-        try: 
-            logger.info("Entered the initiate_data_transformation method of Data transformation class")
-            self.transforming_training_data()
-            self.transforming_testing_data()
-            train_loader,test_loader=self.data_loader()
-            data_transformation_artifact = DataTransformationArtifacts(transformed_train_object=train_loader,
-            transformed_test_object=test_loader)
-            logger.info("Exited the initiate_data_transformation method of Data transformation class")
-            return data_transformation_artifact
-            
         except Exception as e:
-            raise XrayException(e, sys) from e
+            raise XRayException(e, sys)
+
+    def transforming_testing_data(self) -> transforms.Compose:
+        logging.info(
+            "Entered the transforming_testing_data method of Data transformation class"
+        )
+
+        try:
+            test_transform: transforms.Compose = transforms.Compose(
+                [
+                    transforms.Resize(self.data_transformation_config.RESIZE),
+                    transforms.CenterCrop(self.data_transformation_config.CENTERCROP),
+                    transforms.ToTensor(),
+                    transforms.Normalize(
+                        **self.data_transformation_config.normalize_transforms
+                    ),
+                ]
+            )
+
+            logging.info(
+                "Exited the transforming_testing_data method of Data transformation class"
+            )
+
+            return test_transform
+
+        except Exception as e:
+            raise XRayException(e, sys)
+
+    def data_loader(
+        self, train_transform: transforms.Compose, test_transform: transforms.Compose
+    ) -> Tuple[DataLoader, DataLoader]:
+        try:
+            logging.info("Entered the data_loader method of Data transformation class")
+
+            train_data: Dataset = ImageFolder(
+                os.path.join(self.data_ingestion_artifact.train_file_path),
+                transform=train_transform,
+            )
+
+            test_data: Dataset = ImageFolder(
+                os.path.join(self.data_ingestion_artifact.test_file_path),
+                transform=test_transform,
+            )
+
+            logging.info("Created train data and test data paths")
+
+            train_loader: DataLoader = DataLoader(
+                train_data, **self.data_transformation_config.data_loader_params
+            )
+
+            test_loader: DataLoader = DataLoader(
+                test_data, **self.data_transformation_config.data_loader_params
+            )
+
+            logging.info("Exited the data_loader method of Data transformation class")
+
+            return train_loader, test_loader
+
+        except Exception as e:
+            raise XRayException(e, sys)
+
+    def initiate_data_transformation(self) -> DataTransformationArtifact:
+        try:
+            logging.info(
+                "Entered the initiate_data_transformation method of Data transformation class"
+            )
+
+            train_transform: transforms.Compose = self.transforming_training_data()
+
+            test_transform: transforms.Compose = self.transforming_testing_data()
+
+            os.makedirs(self.data_transformation_config.artifact_dir, exist_ok=True)
+
+            joblib.dump(
+                train_transform, self.data_transformation_config.train_transforms_file
+            )
+
+            joblib.dump(
+                test_transform, self.data_transformation_config.test_transforms_file
+            )
+
+            train_loader, test_loader = self.data_loader(
+                train_transform=train_transform, test_transform=test_transform
+            )
+
+            data_transformation_artifact: DataTransformationArtifact = DataTransformationArtifact(
+                transformed_train_object=train_loader,
+                transformed_test_object=test_loader,
+                train_transform_file_path=self.data_transformation_config.train_transforms_file,
+                test_transform_file_path=self.data_transformation_config.test_transforms_file,
+            )
+
+            logging.info(
+                "Exited the initiate_data_transformation method of Data transformation class"
+            )
+
+            return data_transformation_artifact
+
+        except Exception as e:
+            raise XRayException(e, sys)
