@@ -12,11 +12,25 @@ class ModelPusher:
         self.model_pusher_config = model_pusher_config
 
     def build_and_push_bento_image(self):
+        logging.info("Entered build_and_push_bento_image method of ModelPusher class")
+
         try:
+            logging.info("Building the bento from bentofile.yaml")
+
             os.system("bentoml build")
 
+            logging.info("Built the bento from bentofile.yaml")
+
+            logging.info("Creating docker image for bento")
+
             os.system(
-                f"bentoml containerize {self.model_pusher_config.bentoml_service_name}:latest {self.model_pusher_config.bentoml_ecr_uri}"
+                f"bentoml containerize {self.model_pusher_config.bentoml_service_name}:latest -t {self.model_pusher_config.bentoml_ecr_uri}"
+            )
+
+            logging.info("Created docker image for bento")
+
+            logging.info(
+                "Exited build_and_push_bento_image method of ModelPusher class"
             )
 
         except Exception as e:
@@ -27,7 +41,7 @@ class ModelPusher:
         Method Name :   initiate_model_pusher
         Description :   This method initiates model pusher.
 
-        Output      :    Model pusher artifact
+        Output      :   Model pusher artifact
         """
         logging.info("Entered initiate_model_pusher method of ModelPusher class")
 
