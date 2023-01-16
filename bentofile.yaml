@@ -4,6 +4,7 @@ labels:
     stage: dev
 include:
     - "xray/ml/model/model_service.py"
+    - "xray/constant/training_pipeline/__init__.py"
 python:
     packages:
         - torch

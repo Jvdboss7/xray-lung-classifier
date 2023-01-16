@@ -75,6 +75,8 @@ class ModelTrainerConfig:
             self.artifact_dir, TRAINED_MODEL_NAME
         )
 
+        self.train_transforms_key: str = TRAIN_TRANSFORMS_KEY
+
         self.epochs: int = EPOCH
 
         self.optimizer_params: dict = {"lr": 0.01, "momentum": 0.8}
@@ -104,12 +106,10 @@ class ModelEvaluationConfig:
 @dataclass
 class ModelPusherConfig:
     def __init__(self):
-        self.TRAINED_MODEL_DIR: str = os.path.join(ARTIFACT_DIR, TRAINED_MODEL_DIR)
+        self.bentoml_model_name: str = BENTOML_MODEL_NAME
 
-        self.BEST_MODEL_PATH: str = os.path.join(
-            self.TRAINED_MODEL_DIR, TRAINED_MODEL_NAME
-        )
+        self.bentoml_service_name: str = BENTOML_SERVICE_NAME
 
-        self.BUCKET_NAME: str = BUCKET_NAME
+        self.train_transforms_key: str = TRAIN_TRANSFORMS_KEY
 
-        self.S3_MODEL_KEY_PATH: str = os.path.join(TRAINED_MODEL_NAME)
+        self.bentoml_ecr_uri: str = BENTOML_ECR_URI

@@ -32,6 +32,6 @@ class ModelEvaluationArtifact:
 
 @dataclass
 class ModelPusherArtifact:
-    bucket_name: str
+    bentoml_model_name: str
 
-    s3_model_path: str
+    bentoml_service_name: str
