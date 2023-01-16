@@ -51,9 +51,7 @@ TRAINED_MODEL_DIR: str = "trained_model"
 
 TRAINED_MODEL_NAME: str = "model.pt"
 
-# DEVICE: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-DEVICE: torch.device = torch.device("cpu")
+DEVICE: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 STEP_SIZE: int = 6
 
