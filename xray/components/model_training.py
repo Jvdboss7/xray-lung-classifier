@@ -1,6 +1,8 @@
 import os
 import sys
 
+import bentoml
+import joblib
 import torch
 import torch.nn.functional as F
 from torch.nn import Module
@@ -17,8 +19,7 @@ from xray.entity.config_entity import ModelTrainerConfig
 from xray.exception import XRayException
 from xray.logger import logging
 from xray.ml.model.arch import Net
-import bentoml
-import joblib
+
 
 class ModelTrainer:
     def __init__(
@@ -191,15 +192,15 @@ class ModelTrainer:
             os.makedirs(self.model_trainer_config.artifact_dir, exist_ok=True)
 
             torch.save(model, self.model_trainer_config.trained_model_path)
-            
-            train_transforms_obj = joblib.load(self.data_transformation_artifact.train_transform_file_path)
+
+            train_transforms_obj = joblib.load(
+                self.data_transformation_artifact.train_transform_file_path
+            )
 
             bentoml.pytorch.save_model(
                 name=self.model_trainer_config.trained_bentoml_model_name,
                 model=model,
-                custom_objects={
-                    "xray_train_transforms": train_transforms_obj
-                },
+                custom_objects={"xray_train_transforms": train_transforms_obj},
             )
 
             model_trainer_artifact: ModelTrainerArtifact = ModelTrainerArtifact(

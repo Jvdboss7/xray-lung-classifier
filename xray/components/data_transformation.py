@@ -7,11 +7,14 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
-from xray.entity.artifacts_entity import (DataIngestionArtifact,
-                                          DataTransformationArtifact)
+from xray.entity.artifacts_entity import (
+    DataIngestionArtifact,
+    DataTransformationArtifact,
+)
 from xray.entity.config_entity import DataTransformationConfig
 from xray.exception import XRayException
 from xray.logger import logging
+
 
 class DataTransformation:
     def __init__(
@@ -127,9 +130,13 @@ class DataTransformation:
 
             os.makedirs(self.data_transformation_config.artifact_dir, exist_ok=True)
 
-            joblib.dump(train_transform, self.data_transformation_config.train_transforms_file)
-            
-            joblib.dump(test_transform, self.data_transformation_config.test_transforms_file)
+            joblib.dump(
+                train_transform, self.data_transformation_config.train_transforms_file
+            )
+
+            joblib.dump(
+                test_transform, self.data_transformation_config.test_transforms_file
+            )
 
             train_loader, test_loader = self.data_loader(
                 train_transform=train_transform, test_transform=test_transform
