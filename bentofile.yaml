@@ -3,7 +3,7 @@ labels:
     owner: ineuron-team
     stage: dev
 include:
-    - "xray/ml/model/model_service.py"
+    - "xray/ml/model/*"
     - "xray/constant/training_pipeline/__init__.py"
 python:
     packages:

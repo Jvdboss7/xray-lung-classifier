@@ -4,7 +4,7 @@ from xray.exception import XRayException
 from xray.pipeline.train_pipeline import TrainPipeline
 
 
-def training():
+def start_training():
     try:
         train_pipeline = TrainPipeline()
 
@@ -15,4 +15,4 @@ def training():
 
 
 if __name__ == "__main__":
-    training()
+    start_training()
