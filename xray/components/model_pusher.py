@@ -24,10 +24,26 @@ class ModelPusher:
             logging.info("Creating docker image for bento")
 
             os.system(
-                f"bentoml containerize {self.model_pusher_config.bentoml_service_name}:latest -t {self.model_pusher_config.bentoml_ecr_uri}"
+                f"bentoml containerize {self.model_pusher_config.bentoml_service_name}:latest -t 566373416292.dkr.ecr.us-east-1.amazonaws.com/{self.model_pusher_config.bentoml_ecr_image}:latest"
             )
 
             logging.info("Created docker image for bento")
+
+            logging.info("Logging into ECR")
+
+            os.system(
+                "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 566373416292.dkr.ecr.us-east-1.amazonaws.com"
+            )
+
+            logging.info("Logged into ECR")
+
+            logging.info("Pushing bento image to ECR")
+
+            os.system(
+                f"docker push 566373416292.dkr.ecr.us-east-1.amazonaws.com/{self.model_pusher_config.bentoml_ecr_image}:latest"
+            )
+
+            logging.info("Pushed bento image to ECR")
 
             logging.info(
                 "Exited build_and_push_bento_image method of ModelPusher class"
